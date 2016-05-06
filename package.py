@@ -9,6 +9,6 @@ with open('template.txt', 'r') as template_file:
             output = template.replace('%LOBBY.JS%', lobby)\
                             .replace('%UI.JS%', ui)\
                             .replace('%VERSION%', version)
-            output_file = open("make_hanabi_great_again-" + version + ".user.js", "w")
+            output_file = open("target/make_hanabi_great_again-" + version + ".user.js", "w")
             output_file.write(output)
             output_file.close()
