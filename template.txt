@@ -6,7 +6,7 @@
 // @author       Hyphen-ated
 // @match        http://keldon.net/hanabi/
 // @run-at       document-start
-// @grant        unsafeWindow
+// @grant        none
 // ==/UserScript==
 
 document.addEventListener ("readystatechange", FireWhenReady, true);
@@ -20,17 +20,17 @@ function FireWhenReady () {
     ) {
         this.fired = true;
 
-        //start of lobby.js
-        %LOBBY.JS%
-        //end of lobby.js
+//start of lobby.js
+%LOBBY.JS%
+//end of lobby.js
 
-        //start of ui.js
-        %UI.JS%
-        //end of ui.js
+//start of ui.js
+%UI.JS%
+//end of ui.js
 
-        document.body.onload  = function () {
+        window.onload  = function () {
             console.log("Activating userscript Make Hanabi Great Again");
-            var lobby = new HanabiLobby_Great();
+            var lobby = new HanabiLobby();
             var conn = io.connect("http://keldon.net:32221/");
             lobby.set_conn(conn);
         };
