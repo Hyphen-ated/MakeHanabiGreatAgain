@@ -1,0 +1,38 @@
+// ==UserScript==
+// @name         Make Hanabi Great Again
+// @namespace    http://hyphen-ated.github.io/
+// @version      %VERSION%
+// @description  Improve the already-good UI of keldon's hanabi
+// @author       Hyphen-ated
+// @match        http://keldon.net/hanabi/
+// @run-at       document-start
+// @grant        unsafeWindow
+// ==/UserScript==
+
+document.addEventListener ("readystatechange", FireWhenReady, true);
+
+function FireWhenReady () {
+    this.fired  = this.fired || false;
+
+    if (    document.readyState != "uninitialized"
+        &&  document.readyState != "loading"
+        &&  ! this.fired
+    ) {
+        this.fired = true;
+
+        //start of lobby.js
+        %LOBBY.JS%
+        //end of lobby.js
+
+        //start of ui.js
+        %UI.JS%
+        //end of ui.js
+
+        document.body.onload  = function () {
+            console.log("Activating userscript Make Hanabi Great Again");
+            var lobby = new HanabiLobby_Great();
+            var conn = io.connect("http://keldon.net:32221/");
+            lobby.set_conn(conn);
+        };
+    }
+}
