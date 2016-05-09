@@ -300,9 +300,6 @@ HanabiCard.prototype.hide_clues = function() {
 	this.color_clue.hide();
 	this.number_clue.hide();
 	this.clue_given.hide();
-	this.off("mouseover tap");
-	this.off("mouseout");
-	clue_log.showMatches(null);
 };
 
 var LayoutChild = function(config) {
@@ -878,11 +875,20 @@ HanabiClueLog.prototype.doLayout = function() {
 };
 
 HanabiClueLog.prototype.checkExpiry = function() {
+    var maxLength = 31;
+    var childrenToRemove = this.children.length - maxLength;
+    if(childrenToRemove < 1) {
+        return;
+    }
+	var childrenRemoved = 0;
 	var i;
-
-	for (i = this.children.length - 1; i >= 0; i--)
+	for (i = 0; i < this.children.length; i++)
 	{
-		this.children[i].checkExpiry();
+		childrenRemoved += this.children[i].checkExpiry();
+		if (childrenRemoved >= childrenToRemove) {
+		    break;
+		}
+
 	}
 
 	this.doLayout();
@@ -1008,23 +1014,25 @@ HanabiClueEntry.prototype.checkValid = function(c) {
 	return player_hands.indexOf(ui.deck[c].parent.parent) != -1;
 };
 
+//returns number of expirations, either 0 or 1 depending on whether it expired
 HanabiClueEntry.prototype.checkExpiry = function() {
 	var i;
 
 	for (i = 0; i < this.list.length; i++)
 	{
-		if (this.checkValid(this.list[i])) return;
+		if (this.checkValid(this.list[i])) return 0;
 	}
 
 	for (i = 0; i < this.neglist.length; i++)
 	{
-		if (this.checkValid(this.neglist[i])) return;
+		if (this.checkValid(this.neglist[i])) return 0;
 	}
 
 	this.background.off("mouseover tap");
 	this.background.off("mouseout");
 
 	this.remove();
+	return 1;
 };
 
 HanabiClueEntry.prototype.showMatch = function(target) {
@@ -2833,6 +2841,8 @@ this.handle_notify = function(note) {
 		});
 
 		clue_log.add(entry);
+
+		clue_log.checkExpiry();
 	}
 
 	else if (type == "status")
