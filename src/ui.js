@@ -903,6 +903,16 @@ HanabiClueLog.prototype.showMatches = function(target) {
 	}
 };
 
+HanabiClueLog.prototype.clear = function() {
+    var i;
+
+    for (i = this.children.length - 1; i >= 0; i--)
+    {
+        this.children[i].remove();
+    }
+
+}
+
 var HanabiClueEntry = function(config) {
 	var self = this;
 
@@ -2474,7 +2484,7 @@ this.reset = function() {
 
 	ui.deck = [];
 
-	clue_log.checkExpiry();
+	clue_log.clear();
 
 	for (i = 0; i < strikes.length; i++)
 	{
