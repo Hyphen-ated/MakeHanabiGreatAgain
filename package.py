@@ -1,4 +1,4 @@
-version = "0.1"
+version = "0.1.1"
 
 with open('template.txt', 'r') as template_file:
     template = template_file.read()
