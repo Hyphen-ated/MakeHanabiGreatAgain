@@ -1,0 +1,22 @@
+{
+  "version":      "0.2",
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [ {
+    "exclude_globs":    [  ],
+    "include_globs":    [ "*" ],
+    "js":               [ "inject.js" ],
+    "matches":          [   "http://keldon.net/hanabi/"
+    ],
+    "run_at": "document_end"
+  } ],
+  "converted_from_user_script": true,
+  "description":  "Improves the UI of keldon.net/hanabi",
+  "name":         "Make Hanabi Great Again",
+  "permissions": ["webRequest",
+                  "webRequestBlocking",
+                  "http://keldon.net/"],
+  "web_accessible_resources": ["make_hanabi_great_again.user.js"],
+  "manifest_version": 2
+}

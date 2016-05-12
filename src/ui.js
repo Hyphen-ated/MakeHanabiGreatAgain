@@ -2534,8 +2534,9 @@ this.replay_advanced = function() {
 	{
 		this.perform_replay(0);
 	}
-
-	cardlayer.draw();
+    if (!this.animate_fast) {
+	    cardlayer.draw();
+	}
 };
 
 this.show_connected = function(list) {
@@ -2547,8 +2548,9 @@ this.show_connected = function(list) {
 	{
 		name_frames[i].setConnected(list[i]);
 	}
-
-	uilayer.draw();
+    if (!this.animate_fast) {
+	    uilayer.draw();
+	}
 };
 
 function show_loading() {
@@ -2778,8 +2780,9 @@ this.handle_notify = function(note) {
 		ui.deck[note.which.order].unknown = false;
 		ui.deck[note.which.order].setBareImage();
 		ui.deck[note.which.order].hide_clues();
-
-		cardlayer.draw();
+        if (!this.animate_fast) {
+		    cardlayer.draw();
+		}
 	}
 
 	else if (type == "clue")
@@ -2854,7 +2857,9 @@ this.handle_notify = function(note) {
 		}
 
 		score_label.setText("Score: " + note.score);
-		uilayer.draw();
+		if (!this.animate_fast) {
+		    uilayer.draw();
+		}
 	}
 
 	else if (type == "strike")
@@ -2872,7 +2877,7 @@ this.handle_notify = function(note) {
 
 		uilayer.add(x);
 
-		if (ui.animate_fast)
+		if (this.animate_fast)
 		{
 			x.setOpacity(1.0);
 		}
@@ -2893,8 +2898,9 @@ this.handle_notify = function(note) {
 		{
 			name_frames[i].setActive(note.who == i);
 		}
-
-		uilayer.draw();
+        if (!this.animate_fast) {
+		    uilayer.draw();
+		}
 	}
 
 	else if (type == "game_over")
@@ -2912,7 +2918,9 @@ this.handle_notify = function(note) {
 			});
 		}
 
-		uilayer.draw();
+        if (!this.animate_fast) {
+		    uilayer.draw();
+		}
 	}
 };
 
@@ -2963,13 +2971,17 @@ this.handle_action = function(data) {
 	else
 	{
 		no_clue_label.show();
-		uilayer.draw();
+		if (!this.animate_fast) {
+		    uilayer.draw();
+		}
 	}
 
 	if (!data.can_discard)
 	{
 		no_discard_label.show();
-		uilayer.draw();
+		if (!this.animate_fast) {
+		    uilayer.draw();
+		}
 	}
 
 	submit_clue.setEnabled(false);
@@ -3088,8 +3100,10 @@ this.set_message = function(msg) {
 	}
 
 	message_prompt.setText(msg.text);
-	uilayer.draw();
-	overlayer.draw();
+	if (!this.animate_fast) {
+	    uilayer.draw();
+	    overlayer.draw();
+	}
 };
 
 this.destroy = function() {
