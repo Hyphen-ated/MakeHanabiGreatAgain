@@ -1696,7 +1696,7 @@ var name_frames = [];
 var play_stacks = [], discard_stacks = [];
 var play_area, discard_area, clue_log;
 var clue_area, clue_target_group, clue_type_group, submit_clue;
-var no_clue_label, no_discard_label;
+var no_clue_label, no_clue_box, no_discard_label;
 var exit_game, rewind_replay, advance_replay, lobby_button, help_button;
 var helpgroup;
 var msglog, msgloggroup, overback;
@@ -2218,6 +2218,20 @@ this.build_ui = function() {
 	});
 
 	uilayer.add(no_clue_label);
+
+     no_clue_box = new Kinetic.Rect({
+        x: .15 * win_w,
+        y: .51 * win_h,
+        width: .5 * win_w,
+        height: .22 * win_h,
+        cornerRadius: .01 * win_w,
+        fill: "black",
+        opacity: 0.5,
+        cornerRadius: .01 * win_w,
+        visible: false
+    });
+
+    uilayer.add(no_clue_box);
 
 	clue_area = new Kinetic.Group({
 		x: .15 * win_w,
@@ -2961,6 +2975,7 @@ this.handle_action = function(data) {
 		}).play();
 
 		no_clue_label.hide();
+		no_clue_box.hide();
 		no_discard_label.hide();
 
 		clue_target_group.off("change");
@@ -2991,6 +3006,7 @@ this.handle_action = function(data) {
 	else
 	{
 		no_clue_label.show();
+		no_clue_box.show();
 		if (!this.animate_fast) {
 		    uilayer.draw();
 		}
