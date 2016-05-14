@@ -2551,6 +2551,7 @@ this.perform_replay = function(amt) {
 				{
 					this.animate_fast = false;
 					cardlayer.draw();
+					uilayer.draw();
 				}
 
 				break;
