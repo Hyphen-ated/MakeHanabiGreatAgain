@@ -5,4 +5,4 @@ Features:
  * You can mouse over cards on the table or in the discard to see what was known about them when they were played or discarded.
  * Add a big black box to the "No clues" notifier, to make it more eye-catching. (people often don't notice it's their turn without the clue UI showing up)
 
-Installation: [go to the releases page and download the latest version of this extension, which is a crx file](https://github.com/Hyphen-ated/MakeHanabiGreatAgain/releases), then drag that file onto the extensions page in Chrome.
+Installation: [get it from the chrome web store](https://chrome.google.com/webstore/detail/make-hanabi-great-again/pjncmjjlphlcfkkkceidbepggnjnnkjj?hl=en-US&gl=US&authuser=1)
