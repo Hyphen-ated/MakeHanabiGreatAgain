@@ -2658,9 +2658,7 @@ this.current_movement_slot_num = undefined;
 this.current_movement_message = undefined;
 
 this.try_doing_movement_message = function() {
-    console.log("try it!!!!!!!!!!!!!");
     if (this.current_movement_slot_num && this.current_movement_message) {
-        console.log("YEAH BUDDY");
         console.log(this.current_movement_message.resp.text + " from slot " + this.current_movement_slot_num);
         var original_message = this.current_movement_message.resp.text;
         this.current_movement_message.resp.text = this.current_movement_message.resp.text + " from slot #" + this.current_movement_slot_num;
@@ -2693,8 +2691,6 @@ this.movement_notify_message = function(msg, callback) {
 }
 
 this.save_slot_information = function(note) {
-    console.log("!!! saving it")
-    console.log(player_hands);
     for(var i = 0; i < player_hands.length; ++i) {
         var hand = player_hands[i];
         for(var j = 0; j < hand.children.length; ++j) {
@@ -2702,7 +2698,6 @@ this.save_slot_information = function(note) {
             var handcard = handchild.children[0];
             if (handcard.order == note.which.order) {
                 this.movement_notify_slot(hand.children.length - j);
-//                    console.log("****** PLAYER " + i + " from slot " + j);
             }
         }
     }
@@ -2836,10 +2831,6 @@ this.handle_notify = function(note, performing_replay) {
 		show_clue_match(-1);
 
 		child = ui.deck[note.which.order].parent;
-
-//        console.log("HERE IS THE CARD, THEN HANDS")
-//        console.log(ui.deck[note.which.order])
-//        console.log(player_hands)
 
         if(!this.replay || performing_replay)
             this.save_slot_information(note);
