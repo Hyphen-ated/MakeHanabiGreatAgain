@@ -2510,6 +2510,11 @@ this.reset = function() {
 	this.animate_fast = true;
 };
 
+
+this.handle_message_in_replay = function(ui, msg) {
+    ui.set_message(msg.resp);
+}
+
 this.perform_replay = function(amt) {
 	var msg;
 
@@ -2535,12 +2540,13 @@ this.perform_replay = function(amt) {
 
 		if (msg.type == "message")
 		{
-			this.set_message(msg.resp);
+            this.handle_text_message(msg, this.handle_message_in_replay);
 		}
 
 		else if (msg.type == "notify")
 		{
-			this.handle_notify(msg.resp);
+		    var performing_replay = true;
+			this.handle_notify(msg.resp, performing_replay);
 		}
 
 		if (msg.type == "notify" && msg.resp.type == "turn")
@@ -2642,12 +2648,73 @@ var suit_names = [
 	"Black"
 ];
 
-this.handle_notify = function(note) {
+
+//the idea here is we get these two events, one with the server telling us to print a message like "Bob discards Blue 1"
+//which we want to add slot information to the end of, and another message which we can use to derive slot information.
+//i'm not sure if they will always be sent in the same order, so we handle them in either order, just assuming that a
+//second pair of messages can't overlap the first.
+//"movement" here means a play or discard. (the things we want slot info for)
+this.current_movement_slot_num = undefined;
+this.current_movement_message = undefined;
+
+this.try_doing_movement_message = function() {
+    console.log("try it!!!!!!!!!!!!!");
+    if (this.current_movement_slot_num && this.current_movement_message) {
+        console.log("YEAH BUDDY");
+        console.log(this.current_movement_message.resp.text + " from slot " + this.current_movement_slot_num);
+        var original_message = this.current_movement_message.resp.text;
+        this.current_movement_message.resp.text = this.current_movement_message.resp.text + " from slot #" + this.current_movement_slot_num;
+        if(this.replay) {
+            this.handle_message_in_replay(this, this.current_movement_message);
+        } else {
+            this.handle_message_in_game(this, this.current_movement_message);
+        }
+        this.current_movement_message.resp.text = original_message;
+        delete this.current_movement_slot_num;
+        delete this.current_movement_message;
+    }
+}
+
+this.movement_notify_slot = function(slot_num) {
+    if(this.current_movement_slot_num) {
+        console.log("ERROR in Make Hanabi Great Again extension: the slot number was set to " + this.current_movement_slot_num + " when I expected it to be undefined.")
+    }
+    this.current_movement_slot_num = slot_num;
+    this.try_doing_movement_message();
+}
+
+this.movement_notify_message = function(msg, callback) {
+    if(this.current_movement_message) {
+        console.log("ERROR in Make Hanabi Great Again extension: the movement message was set to " + this.current_movement_message + " when I expected it to be undefined.")
+    }
+
+    this.current_movement_message = msg;
+    this.try_doing_movement_message();
+}
+
+this.save_slot_information = function(note) {
+    console.log("!!! saving it")
+    console.log(player_hands);
+    for(var i = 0; i < player_hands.length; ++i) {
+        var hand = player_hands[i];
+        for(var j = 0; j < hand.children.length; ++j) {
+            var handchild = hand.children[j];
+            var handcard = handchild.children[0];
+            if (handcard.order == note.which.order) {
+                this.movement_notify_slot(hand.children.length - j);
+//                    console.log("****** PLAYER " + i + " from slot " + j);
+            }
+        }
+    }
+
+}
+
+this.handle_notify = function(note, performing_replay) {
 	var type = note.type;
 	var child, order;
 	var pos, scale, n;
 	var i;
-
+    console.log(note);
 	if (type == "draw")
 	{
 		ui.deck[note.order] = new HanabiCard({
@@ -2743,6 +2810,9 @@ this.handle_notify = function(note) {
 
 		child = ui.deck[note.which.order].parent;
 
+        if(!this.replay || performing_replay)
+            this.save_slot_information(note);
+
 		ui.deck[note.which.order].suit = note.which.suit;
 		ui.deck[note.which.order].rank = note.which.rank;
 		ui.deck[note.which.order].unknown = false;
@@ -2766,6 +2836,13 @@ this.handle_notify = function(note) {
 		show_clue_match(-1);
 
 		child = ui.deck[note.which.order].parent;
+
+//        console.log("HERE IS THE CARD, THEN HANDS")
+//        console.log(ui.deck[note.which.order])
+//        console.log(player_hands)
+
+        if(!this.replay || performing_replay)
+            this.save_slot_information(note);
 
 		ui.deck[note.which.order].suit = note.which.suit;
 		ui.deck[note.which.order].rank = note.which.rank;
@@ -3153,18 +3230,35 @@ this.replay_turn = 0;
 
 }
 
+HanabiUI.prototype.handle_message_in_game = function(ui, msg) {
+    ui.replay_log.push(msg);
+
+    if (!ui.replay)
+    {
+        ui.set_message.call(ui, msg.resp);
+    }
+}
+
+HanabiUI.prototype.handle_text_message = function(msg, callback) {
+    var msgWithoutName = msg.resp.text.substr(msg.resp.text.indexOf(" ") + 1);
+    if(msgWithoutName.includes("plays") || msgWithoutName.includes("discards") || msgWithoutName.includes("fails")) {
+        this.movement_notify_message(msg, callback);
+    } else {
+        callback(this, msg);
+    }
+}
+
 HanabiUI.prototype.handle_message = function(msg) {
 	var msgType = msg.type;
 	var msgData = msg.resp;
 
 	if (msgType == "message")
 	{
-		this.replay_log.push(msg);
-
-		if (!this.replay)
-		{
-			this.set_message.call(this, msgData);
-		}
+	    if(this.replay) {
+	        this.replay_log.push(msg);
+	    } else {
+	        this.handle_text_message(msg, this.handle_message_in_game);
+	    }
 	}
 
 	if (msgType == "init")
