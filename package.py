@@ -1,4 +1,9 @@
-import shutil
+import shutil, os
+
+if os.path.exists('target'):
+    shutil.rmtree('target')
+
+os.makedirs('target')
 
 with open('extension/template.txt', 'r') as template_file:
     template = template_file.read()
