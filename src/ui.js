@@ -3,6 +3,14 @@
 function HanabiUI(lobby)
 {
 
+//control variables for the Make Hanabi Great Again extension features
+var MHGA_highlight_non_hand_cards = true;
+var MHGA_show_slot_nums = true;
+var MHGA_show_no_clues_box = true;
+
+//this string gets replaced with values for the above variables based on the extension's settings page
+//@MHGA_INJECT_OPTIONS
+
 this.lobby = lobby;
 
 var cardw = 286;
@@ -2828,6 +2836,7 @@ this.handle_notify = function(note, performing_replay) {
 
 	else if (type == "discard")
 	{
+
 		show_clue_match(-1);
 
 		child = ui.deck[note.which.order].parent;

@@ -20,5 +20,8 @@ with open('extension/template.txt', 'r') as template_file:
 shutil.copyfile("extension/manifest.json", "target/manifest.json")
 shutil.copyfile("extension/background.js", "target/background.js")
 shutil.copyfile("extension/inject.js", "target/inject.js")
+shutil.copyfile("extension/options.js", "target/options.js")
+shutil.copyfile("extension/options.html", "target/options.html")
+
 shutil.copyfile("src/ui.js", "target/ui.js")
 shutil.copyfile("src/lobby.js", "target/lobby.js")
