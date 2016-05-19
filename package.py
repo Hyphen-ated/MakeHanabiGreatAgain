@@ -25,3 +25,5 @@ shutil.copyfile("extension/options.html", "target/options.html")
 
 shutil.copyfile("src/ui.js", "target/ui.js")
 shutil.copyfile("src/lobby.js", "target/lobby.js")
+
+shutil.make_archive('release', 'zip', 'target')
