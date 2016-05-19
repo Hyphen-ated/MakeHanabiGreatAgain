@@ -7,6 +7,8 @@ function HanabiUI(lobby)
 var MHGA_highlight_non_hand_cards = document.getElementById("MHGA_highlight_non_hand_cards").checked;
 var MHGA_show_slot_nums = document.getElementById("MHGA_show_slot_nums").checked;
 var MHGA_show_no_clues_box = document.getElementById("MHGA_show_no_clues_box").checked;
+var MHGA_show_debug_messages = document.getElementById("MHGA_show_debug_messages").checked;
+
 
 this.lobby = lobby;
 
@@ -2669,7 +2671,6 @@ this.current_movement_message = undefined;
 
 this.try_doing_movement_message = function() {
     if (this.current_movement_slot_num && this.current_movement_message) {
-        console.log(this.current_movement_message.resp.text + " from slot " + this.current_movement_slot_num);
         //need to save off and restore original message or else during replays if you go back and forth it will keep adding slot info over and over.
         var original_message = this.current_movement_message.resp.text;
         if(MHGA_show_slot_nums) {
@@ -2722,7 +2723,9 @@ this.handle_notify = function(note, performing_replay) {
 	var child, order;
 	var pos, scale, n;
 	var i;
-    console.log(note);
+	if(MHGA_show_debug_messages) {
+        console.log(note);
+    }
 	if (type == "draw")
 	{
 		ui.deck[note.order] = new HanabiCard({
@@ -3311,6 +3314,8 @@ HanabiUI.prototype.set_backend = function(backend) {
 };
 
 HanabiUI.prototype.send_msg = function(msg) {
-	console.log("out", msg);
+	if(MHGA_show_debug_messages){
+	    console.log("out", msg);
+	}
 	this.backend.emit("message", msg);
 };

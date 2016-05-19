@@ -4,7 +4,8 @@ var src = chrome.extension.getURL('make_hanabi_great_again.user.js');
 chrome.storage.sync.get({
     "MHGA_highlight_non_hand_cards": true,
     "MHGA_show_slot_nums": true,
-    "MHGA_show_no_clues_box": true
+    "MHGA_show_no_clues_box": true,
+    "MHGA_show_debug_messages": false
 }, function(items) {
     var newscript = document.createElement('script');
     newscript.src = src;
@@ -30,6 +31,12 @@ chrome.storage.sync.get({
     box.type = "checkbox";
     box.id = "MHGA_show_no_clues_box";
     box.checked = items.MHGA_show_no_clues_box;
+    hiddenCheckboxes.appendChild(box);
+
+    box = document.createElement('input');
+    box.type = "checkbox";
+    box.id = "MHGA_show_debug_messages";
+    box.checked = items.MHGA_show_debug_messages;
     hiddenCheckboxes.appendChild(box);
 
     (document.head || document.documentElement).appendChild(hiddenCheckboxes);
