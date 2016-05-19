@@ -4,12 +4,9 @@ function HanabiUI(lobby)
 {
 
 //control variables for the Make Hanabi Great Again extension features
-var MHGA_highlight_non_hand_cards = true;
-var MHGA_show_slot_nums = true;
-var MHGA_show_no_clues_box = true;
-
-//this string gets replaced with values for the above variables based on the extension's settings page
-//@MHGA_INJECT_OPTIONS
+var MHGA_highlight_non_hand_cards = document.getElementById("MHGA_highlight_non_hand_cards").checked;
+var MHGA_show_slot_nums = document.getElementById("MHGA_show_slot_nums").checked;
+var MHGA_show_no_clues_box = document.getElementById("MHGA_show_no_clues_box").checked;
 
 this.lobby = lobby;
 
@@ -308,6 +305,11 @@ HanabiCard.prototype.hide_clues = function() {
 	this.color_clue.hide();
 	this.number_clue.hide();
 	this.clue_given.hide();
+	if(!MHGA_highlight_non_hand_cards) {
+        this.off("mouseover tap");
+        this.off("mouseout");
+        clue_log.showMatches(null);
+    }
 };
 
 var LayoutChild = function(config) {
@@ -2668,8 +2670,11 @@ this.current_movement_message = undefined;
 this.try_doing_movement_message = function() {
     if (this.current_movement_slot_num && this.current_movement_message) {
         console.log(this.current_movement_message.resp.text + " from slot " + this.current_movement_slot_num);
+        //need to save off and restore original message or else during replays if you go back and forth it will keep adding slot info over and over.
         var original_message = this.current_movement_message.resp.text;
-        this.current_movement_message.resp.text = this.current_movement_message.resp.text + " from slot #" + this.current_movement_slot_num;
+        if(MHGA_show_slot_nums) {
+            this.current_movement_message.resp.text = this.current_movement_message.resp.text + " from slot #" + this.current_movement_slot_num;
+        }
         if(this.replay) {
             this.handle_message_in_replay(this, this.current_movement_message);
         } else {
@@ -3084,7 +3089,9 @@ this.handle_action = function(data) {
 	else
 	{
 		no_clue_label.show();
-		no_clue_box.show();
+		if(MHGA_show_no_clues_box) {
+		    no_clue_box.show();
+		}
 		if (!this.animate_fast) {
 		    uilayer.draw();
 		}
