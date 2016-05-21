@@ -1,5 +1,6 @@
 "use strict";
 
+var MHGA_show_debug_messages = document.getElementById("MHGA_show_debug_messages").checked;
 function HanabiLobby() {
 	var self = this;
 
@@ -616,8 +617,9 @@ HanabiLobby.prototype.listen_conn = function(conn) {
 		var msgType = msg.type;
 		var msgData = msg.resp;
 
-		console.log(msg);
-
+        if(MHGA_show_debug_messages) {
+		    console.log(msg);
+        }
 		if (msgType == "hello")
 		{
 			self.hide_login();
