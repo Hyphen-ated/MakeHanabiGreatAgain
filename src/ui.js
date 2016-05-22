@@ -2,14 +2,6 @@
 
 function HanabiUI(lobby)
 {
-
-//control variables for the Make Hanabi Great Again extension features
-var MHGA_highlight_non_hand_cards = document.getElementById("MHGA_highlight_non_hand_cards").checked;
-var MHGA_show_slot_nums = document.getElementById("MHGA_show_slot_nums").checked;
-var MHGA_show_no_clues_box = document.getElementById("MHGA_show_no_clues_box").checked;
-var MHGA_show_debug_messages = document.getElementById("MHGA_show_debug_messages").checked;
-
-
 this.lobby = lobby;
 
 var cardw = 286;

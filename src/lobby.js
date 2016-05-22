@@ -1,6 +1,5 @@
 "use strict";
 
-var MHGA_show_debug_messages = document.getElementById("MHGA_show_debug_messages").checked;
 function HanabiLobby() {
 	var self = this;
 
