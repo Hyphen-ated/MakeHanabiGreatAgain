@@ -5,3 +5,12 @@ chrome.webRequest.onBeforeRequest.addListener(
     },
     {urls: ["*://keldon.net/hanabi/ui.js", "*://keldon.net/hanabi/lobby.js"]},
     ["blocking"]);
+
+chrome.runtime.onMessageExternal.addListener(
+    function(request, sender, sendResponse) {
+        console.log(request);
+        if(request.action = "open-options") {
+            chrome.runtime.openOptionsPage();
+        }
+    }
+)

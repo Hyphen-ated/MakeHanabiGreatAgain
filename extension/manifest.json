@@ -7,7 +7,7 @@
     "exclude_globs":    [  ],
     "include_globs":    [ "*" ],
     "js":               [ "inject.js" ],
-    "matches":          [   "http://keldon.net/hanabi/"
+    "matches":          [   "*://keldon.net/hanabi/"
     ],
     "run_at": "document_end"
   } ],
@@ -21,7 +21,10 @@
   "permissions": ["webRequest",
                   "storage",
                   "webRequestBlocking",
-                  "http://keldon.net/"],
+                  "*://keldon.net/"],
   "web_accessible_resources": ["make_hanabi_great_again.user.js"],
+  "externally_connectable": {
+    "matches": ["*://keldon.net/hanabi/"]
+  },
   "manifest_version": 2
 }

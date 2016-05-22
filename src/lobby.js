@@ -110,6 +110,27 @@ function HanabiLobby() {
 		self.draw_history();
 	});
 
+
+    var optionsButton = document.createElement("button");
+    optionsButton.id = "show-options";
+    optionsButton.innerHTML = "Options";
+    optionsButton.style.position = "relative";
+    //changing the text size is necessary to fit it nicely. the 2px relative adjustment makes the buttons line up.
+    //ideally i'd change all the buttons to align by the middle of the text, but i don't want to mess with the overall css
+    optionsButton.style.bottom = "2px";
+    optionsButton.style.width = "100px";
+    optionsButton.style.fontSize = "21px";
+
+	$("#show-history").parent().append(optionsButton);
+
+    $("#show-options").on("click", function(evt) {
+        evt.preventDefault();
+        var extensionId = "eklhaockjakmbkahkdookhdcgdciffjf";
+        chrome.runtime.sendMessage(extensionId, {action: "open-options"});
+        //chrome.tabs.create("chrome://extensions/?options=eklhaockjakmbkahkdookhdcgdciffjf");
+        //window.open("chrome://extensions/?options=eklhaockjakmbkahkdookhdcgdciffjf")
+    });
+
 	$(".return-table").on("click", function(evt) {
 		evt.preventDefault();
 
