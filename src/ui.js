@@ -105,6 +105,52 @@ FitText.prototype.setText = function(text) {
 	this.resize();
 };
 
+var MultiFitText = function(config) {
+    Kinetic.Group.call(this, config);
+    this.maxLines = config.maxLines;
+    this.smallHistory = [];
+    for (var i = 0; i < this.maxLines; ++i) {
+        var newConfig = {
+            align: "center",
+            fontSize: .028 * win_h,
+            fontFamily: "Verdana",
+            fill: "#d8d5ef",
+            shadowColor: "black",
+            shadowBlur: 10,
+            shadowOffset: { x: 0, y: 0 },
+            shadowOpacity: 0.9,
+            listening: false
+        };
+        newConfig.width = config.width;
+        newConfig.height = config.height / this.maxLines;
+        newConfig.x = 0;
+        newConfig.y = i * newConfig.height;
+
+        var childText = new FitText(newConfig);
+        Kinetic.Group.prototype.add.call(this, childText);
+    }
+}
+
+Kinetic.Util.extend(MultiFitText, Kinetic.Group);
+
+MultiFitText.prototype.setMultiText = function(text) {
+    if(this.smallHistory.length >= this.maxLines) {
+        this.smallHistory.shift();
+    }
+    this.smallHistory.push(text);
+    for(var i = 0; i < this.children.length; ++i) {
+        var msg = this.smallHistory[i];
+        if (!msg) {
+            msg = "";
+        }
+        this.children[i].setText(msg);
+    }
+}
+
+MultiFitText.prototype.reset = function() {
+    this.smallHistory = [];
+}
+
 var HanabiCard = function(config) {
 	var self = this;
 
@@ -1782,9 +1828,9 @@ this.build_ui = function() {
 
 	rect = new Kinetic.Rect({
 		x: .2 * win_w,
-		y: .24 * win_h,
+		y: (MHGA_show_more_log ? .235 : .24) * win_h,
 		width: .4 * win_w,
-		height: .05 * win_h,
+		height: (MHGA_show_more_log ? .098 : .05) * win_h,
 		fill: "black",
 		opacity: 0.3,
 		cornerRadius: .01 * win_h,
@@ -1809,21 +1855,12 @@ this.build_ui = function() {
 		});
 	});
 
-	message_prompt = new FitText({
+	message_prompt = new MultiFitText({
 		x: .21 * win_w,
-		y: .25 * win_h,
+		y: ( MHGA_show_more_log ? .238 : .25) * win_h,
 		width: .38 * win_w,
-		height: .03 * win_h,
-		align: "center",
-		fontSize: .03 * win_h,
-		fontFamily: "Verdana",
-		fill: "#d8d5ef",
-		shadowColor: "black",
-		shadowBlur: 10,
-		shadowOffset: { x: 0, y: 0 },
-		shadowOpacity: 0.9,
-		text: "Waiting for other players",
-		listening: false
+		height: (MHGA_show_more_log ? .095 : .03) * win_h,
+		maxLines: (MHGA_show_more_log ? 3 : 1)
 	});
 
 	uilayer.add(message_prompt);
@@ -1986,7 +2023,7 @@ this.build_ui = function() {
 			fill: suit_colors[i],
 			opacity: 0.4,
 			x: (.183 + (width + .015) * i) * win_w,
-			y: (.3 + offset) * win_h,
+			y: ((MHGA_show_more_log ? .345 : .3) + offset) * win_h,
 			width: width * win_w,
 			height: height * win_h,
 			cornerRadius: radius * win_w
@@ -1996,7 +2033,7 @@ this.build_ui = function() {
 
 		pileback = new Kinetic.Image({
 			x: (.183 + (width + .015) * i) * win_w,
-			y: (.3 + offset) * win_h,
+			y: ((MHGA_show_more_log ? .345 : .3) + offset) * win_h,
 			width: width * win_w,
 			height: height * win_h,
 			image: card_images["card-" + i + "-0"]
@@ -2008,7 +2045,7 @@ this.build_ui = function() {
 			stroke: suit_colors[i],
 			strokeWidth: 5,
 			x: (.183 + (width + .015) * i) * win_w,
-			y: (.3 + offset) * win_h,
+			y: ((MHGA_show_more_log ? .345 : .3) + offset) * win_h,
 			width: width * win_w,
 			height: height * win_h,
 			cornerRadius: radius * win_w
@@ -2018,7 +2055,7 @@ this.build_ui = function() {
 
 		play_stacks[i] = new CardStack({
 			x: (.183 + (width + .015) * i) * win_w,
-			y: (.3 + offset) * win_h,
+			y: ((MHGA_show_more_log ? .345 : .3) + offset) * win_h,
 			width: width * win_w,
 			height: height * win_h
 		});
@@ -2206,9 +2243,24 @@ this.build_ui = function() {
 		*/
 	}
 
+
+    no_clue_box = new Kinetic.Rect({
+        x: .20 * win_w,
+        y: .56 * win_h,
+        width: .40 * win_w,
+        height: .15 * win_h,
+        cornerRadius: .01 * win_w,
+        fill: "black",
+        opacity: 0.5,
+        cornerRadius: .01 * win_w,
+        visible: false
+    });
+
+    uilayer.add(no_clue_box);
+
 	no_clue_label = new Kinetic.Text({
 		x: .15 * win_w,
-		y: .55 * win_h,
+		y: .585 * win_h,
 		width: .5 * win_w,
 		height: .19 * win_h,
 		fontFamily: "Verdana",
@@ -2223,23 +2275,10 @@ this.build_ui = function() {
 
 	uilayer.add(no_clue_label);
 
-     no_clue_box = new Kinetic.Rect({
-        x: .15 * win_w,
-        y: .51 * win_h,
-        width: .5 * win_w,
-        height: .22 * win_h,
-        cornerRadius: .01 * win_w,
-        fill: "black",
-        opacity: 0.5,
-        cornerRadius: .01 * win_w,
-        visible: false
-    });
-
-    uilayer.add(no_clue_box);
 
 	clue_area = new Kinetic.Group({
 		x: .15 * win_w,
-		y: .51 * win_h,
+		y: (MHGA_show_more_log ? .54 : .51) * win_h,
 		width: .5 * win_w,
 		height: .27 * win_h
 	});
@@ -2275,7 +2314,7 @@ this.build_ui = function() {
 	{
 		button = new NumberButton({
 			x: (.133 + (i - 1) * .049) * win_w,
-			y: .035 * win_h,
+			y: (MHGA_show_more_log ? .027 : .035) * win_h,
 			width: .04 * win_w,
 			height: .071 * win_h,
 			number: i,
@@ -2300,7 +2339,7 @@ this.build_ui = function() {
 	{
 		button = new ColorButton({
 			x: (x + i * .049) * win_w,
-			y: .115 * win_h,
+			y: (MHGA_show_more_log ? 0.1 : .115) * win_h,
 			width: .04 * win_w,
 			height: .071 * win_h,
 			color: suit_colors[i],
@@ -2314,7 +2353,7 @@ this.build_ui = function() {
 
 	submit_clue = new Button({
 		x: .133 * win_w,
-		y: .195 * win_h,
+		y: (MHGA_show_more_log ? .172 : .195) * win_h,
 		width: .236 * win_w,
 		height: .051 * win_h,
 		text: "Give Clue"
@@ -2328,7 +2367,7 @@ this.build_ui = function() {
 
 	rewind_replay = new Button({
 		x: .15 * win_w,
-		y: .53 * win_h,
+		y: (MHGA_show_more_log ? .55 : .53) * win_h,
 		width: .24 * win_w,
 		height: .08 * win_h,
 		text: "Rewind Replay",
@@ -2339,7 +2378,7 @@ this.build_ui = function() {
 
 	advance_replay = new Button({
 		x: .4 * win_w,
-		y: .53 * win_h,
+		y: (MHGA_show_more_log ? .55 : .53) * win_h,
 		width: .24 * win_w,
 		height: .08 * win_h,
 		text: "Advance Replay",
@@ -2350,7 +2389,7 @@ this.build_ui = function() {
 
 	exit_game = new Button({
 		x: .3 * win_w,
-		y: .63 * win_h,
+		y: (MHGA_show_more_log ? .65 : .63) * win_h,
 		width: .2 * win_w,
 		height: .1 * win_h,
 		text: "Exit Game",
@@ -2479,7 +2518,7 @@ this.build_ui = function() {
 this.reset = function() {
 	var i, suits;
 
-	message_prompt.setText("");
+	message_prompt.setMultiText("");
 	msglog.setText("");
 
 	suits = 5;
@@ -2503,6 +2542,7 @@ this.reset = function() {
 	ui.deck = [];
 
 	clue_log.clear();
+	message_prompt.reset();
 
 	for (i = 0; i < strikes.length; i++)
 	{
@@ -3223,7 +3263,7 @@ this.set_message = function(msg) {
 		msglog.setOffset({x: 0, y: h - gh - th});
 	}
 
-	message_prompt.setText(msg.text);
+	message_prompt.setMultiText(msg.text);
 	if (!this.animate_fast) {
 	    uilayer.draw();
 	    overlayer.draw();
