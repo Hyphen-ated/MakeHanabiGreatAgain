@@ -125,10 +125,7 @@ function HanabiLobby() {
 
     $("#show-options").on("click", function(evt) {
         evt.preventDefault();
-        var extensionId = "eklhaockjakmbkahkdookhdcgdciffjf";
         chrome.runtime.sendMessage(extensionId, {action: "open-options"});
-        //chrome.tabs.create("chrome://extensions/?options=eklhaockjakmbkahkdookhdcgdciffjf");
-        //window.open("chrome://extensions/?options=eklhaockjakmbkahkdookhdcgdciffjf")
     });
 
 	$(".return-table").on("click", function(evt) {

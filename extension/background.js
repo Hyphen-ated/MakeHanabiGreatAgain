@@ -9,8 +9,11 @@ chrome.webRequest.onBeforeRequest.addListener(
 chrome.runtime.onMessageExternal.addListener(
     function(request, sender, sendResponse) {
         console.log(request);
-        if(request.action = "open-options") {
+        if(request.action == "open-options") {
             chrome.runtime.openOptionsPage();
+        } else if (request.action == "make-beep") {
+            var audio = new Audio('hanabeep.mp3');
+            audio.play();
         }
     }
 )

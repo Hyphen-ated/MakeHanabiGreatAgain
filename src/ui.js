@@ -3036,9 +3036,17 @@ this.handle_notify = function(note, performing_replay) {
 	}
 };
 
+var last_action_time = 0;
 this.handle_action = function(data) {
 
 	var i, child;
+
+    var current_time = new Date().getTime();
+    if (MHGA_beep_notifications && current_time - last_action_time > 1000) {
+        chrome.runtime.sendMessage(extensionId, {action: "make-beep"});
+        last_action_time = current_time;
+    }
+
 
 	var stop_action = function() {
 		var i;
