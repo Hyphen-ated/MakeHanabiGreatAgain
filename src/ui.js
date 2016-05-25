@@ -501,6 +501,13 @@ var CardDeck = function(config) {
 		text: "0"
 	});
 
+	this.count.on("click tap", function() {
+	    if(ui.replay) {
+	        var targetNumber = prompt("Go To Number:");
+            ui.set_replay_by_cards_in_deck(targetNumber);
+	    }
+	});
+
 	this.add(this.count);
 };
 
@@ -548,6 +555,10 @@ CardDeck.prototype.setCount = function(count) {
 
 	this.cardback.setVisible(count > 0);
 };
+
+CardDeck.prototype.getCount = function() {
+    return this.count.getText();
+}
 
 var CardStack = function(config) {
 	Kinetic.Group.call(this, config);
@@ -2543,6 +2554,9 @@ this.reset = function() {
 
 	clue_log.clear();
 	message_prompt.reset();
+	//this should always be overridden before it gets displayed
+	drawdeck.setCount(99);
+
 
 	for (i = 0; i < strikes.length; i++)
 	{
@@ -2553,6 +2567,19 @@ this.reset = function() {
 
 	this.animate_fast = true;
 };
+
+this.set_replay_by_cards_in_deck = function(target_count_str) {
+    var target_count = parseInt(target_count_str);
+    if(isNaN(target_count) || target_count < 0) {
+        return;
+    }
+    this.reset();
+    this.replay_turn = 0;
+    this.replay_pos = 0;
+    while(drawdeck.getCount() > target_count) {
+        ui.perform_replay(1);
+    }
+}
 
 
 this.handle_message_in_replay = function(ui, msg) {
