@@ -128,6 +128,14 @@ MultiFitText.prototype.setMultiText = function(text) {
         this.smallHistory.shift();
     }
     this.smallHistory.push(text);
+    //performance optimization: setText on the children is slow, so don't actually do it until its time to display things.
+    //we also have to call refresh_text after any time we manipulate replay position
+    if(!ui.animate_fast) {
+        this.refresh_text();
+    }
+}
+
+MultiFitText.prototype.refresh_text = function() {
     for(var i = 0; i < this.children.length; ++i) {
         var msg = this.smallHistory[i];
         if (!msg) {
@@ -270,6 +278,15 @@ HanabiMsgLog.prototype.show_player_actions = function(player_name) {
         overback.hide();
         overlayer.draw();
     });
+}
+
+HanabiMsgLog.prototype.refresh_text = function() {
+    this.logtext.refresh_text();
+    this.lognumbers.refresh_text();
+    for (var i = 0; i < ui.player_names.length; i++) {
+        this.player_logs[i].refresh_text();
+        this.player_lognumbers[i].refresh_text();
+    }
 }
 
 HanabiMsgLog.prototype.reset = function() {
@@ -2689,6 +2706,8 @@ this.set_replay_by_cards_in_deck = function(target_count_str) {
     while(drawdeck.getCount() > target_count) {
         ui.perform_replay(1);
     }
+    msgloggroup.refresh_text();
+    message_prompt.refresh_text();
 }
 
 
@@ -2737,6 +2756,8 @@ this.perform_replay = function(amt) {
 				if (amt < 0)
 				{
 					this.animate_fast = false;
+					msgloggroup.refresh_text();
+					message_prompt.refresh_text();
 					cardlayer.draw();
 					uilayer.draw();
 				}
