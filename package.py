@@ -22,4 +22,13 @@ with open('extension/template.txt', 'r') as template_file:
 shutil.copyfile("src/ui.js", "target/ui.js")
 shutil.copyfile("src/lobby.js", "target/lobby.js")
 
+#if you aren't me, just take this key stuff out.
+key_directory = "D:/home/code/hanabipem/"
+shutil.copyfile(key_directory + "key.pem", "target/key.pem")
+
+#make the zip file to be uploaded to google web store
 shutil.make_archive('release', 'zip', 'target')
+
+#don't accidentally leave key information anywhere inside this repo working dir
+shutil.move('release.zip', key_directory + 'release.zip')
+os.remove('target/key.pem')
