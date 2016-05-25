@@ -110,18 +110,8 @@ var MultiFitText = function(config) {
     this.maxLines = config.maxLines;
     this.smallHistory = [];
     for (var i = 0; i < this.maxLines; ++i) {
-        var newConfig = {
-            align: "center",
-            fontSize: .028 * win_h,
-            fontFamily: "Verdana",
-            fill: "#d8d5ef",
-            shadowColor: "black",
-            shadowBlur: 10,
-            shadowOffset: { x: 0, y: 0 },
-            shadowOpacity: 0.9,
-            listening: false
-        };
-        newConfig.width = config.width;
+        var newConfig = $.extend({}, config);
+
         newConfig.height = config.height / this.maxLines;
         newConfig.x = 0;
         newConfig.y = i * newConfig.height;
@@ -149,6 +139,9 @@ MultiFitText.prototype.setMultiText = function(text) {
 
 MultiFitText.prototype.reset = function() {
     this.smallHistory = [];
+    for(var i = 0; i < this.children.length; ++i) {
+        this.children[i].setText("");
+    }
 }
 
 var HanabiMsgLog = function(config) {
@@ -180,30 +173,48 @@ var HanabiMsgLog = function(config) {
 
     Kinetic.Group.prototype.add.call(this,rect);
 
-    this.logtext = new Kinetic.Text({
+    var textoptions = {
         fontSize: .025 * win_h,
         fontFamily: "Verdana",
         fill: "white",
+        x: (MHGA_show_log_numbers? .04 : .01) * win_w,
+        y: .01 * win_h,
+        width: (MHGA_show_log_numbers? .35 : .38) * win_w,
+        height: .94 * win_h,
+        maxLines: 38
+    };
+
+    this.logtext = new MultiFitText(textoptions);
+    Kinetic.Group.prototype.add.call(this,this.logtext);
+
+    var numbersoptions = {
+        fontSize: .025 * win_h,
+        fontFamily: "Verdana",
+        fill: "red",
         x: .01 * win_w,
         y: .01 * win_h,
-        width: .38 * win_w,
-        height: "auto"
-    });
+        width: .03 * win_w,
+        height: .94 * win_h,
+        maxLines: 38
+    };
+    this.lognumbers = new MultiFitText(numbersoptions);
+    if(! MHGA_show_log_numbers) {
+        this.lognumbers.hide();
+    }
+    Kinetic.Group.prototype.add.call(this,this.lognumbers);
 
-    Kinetic.Group.prototype.add.call(this,this.logtext);
+
     this.player_logs = [];
+    this.player_lognumbers = [];
     for (var i = 0; i < ui.player_names.length; i++) {
-        this.player_logs[i] = new Kinetic.Text({
-            fontSize: .025 * win_h,
-            fontFamily: "Verdana",
-            fill: "white",
-            x: .01 * win_w,
-            y: .01 * win_h,
-            width: .38 * win_w,
-            height: "auto",
-            visible: false
-        });
+        this.player_logs[i] = new MultiFitText(textoptions);
+        this.player_logs[i].hide();
         Kinetic.Group.prototype.add.call(this,this.player_logs[i]);
+
+
+        this.player_lognumbers[i] = new MultiFitText(numbersoptions);
+        this.player_lognumbers[i].hide();
+        Kinetic.Group.prototype.add.call(this,this.player_lognumbers[i]);
     }
 
 }
@@ -212,28 +223,15 @@ Kinetic.Util.extend(HanabiMsgLog, Kinetic.Group);
 
 HanabiMsgLog.prototype.add_message = function(msg) {
     var loggroup = this;
-    var append_line = function (log, line) {
-        var text = log.getText();
-
-        text = text + line + "\n";
-
-        log.setText(text);
-
-        var h = log.getHeight(), gh = loggroup.getHeight();
-        var th = log.getTextHeight();
-
-        gh -= .02 * win_h;
-
-        if (h > gh)
-        {
-            log.setOffset({x: 0, y: h - gh - th});
-        }
+    var append_line = function (log, numbers, line) {
+        log.setMultiText(line);
+        numbers.setMultiText(drawdeck.getCount());
     }
 
-    append_line(this.logtext, msg);
+    append_line(this.logtext, this.lognumbers, msg);
     for (var i = 0; i < ui.player_names.length; i++) {
         if(msg.startsWith(ui.player_names[i])) {
-            append_line(this.player_logs[i], msg);
+            append_line(this.player_logs[i], this.player_lognumbers[i], msg);
             break;
         }
     }
@@ -247,7 +245,12 @@ HanabiMsgLog.prototype.show_player_actions = function(player_name) {
         }
     }
     this.logtext.hide();
+    this.lognumbers.hide();
     this.player_logs[player_idx].show();
+    if(MHGA_show_log_numbers) {
+        this.player_lognumbers[player_idx].show();
+    }
+
     this.show();
 
     overback.show();
@@ -257,7 +260,12 @@ HanabiMsgLog.prototype.show_player_actions = function(player_name) {
     overback.on("click tap", function() {
         overback.off("click tap");
         thislog.player_logs[player_idx].hide();
+        thislog.player_lognumbers[player_idx].hide();
+
         thislog.logtext.show();
+        if (MHGA_show_log_numbers) {
+            thislog.lognumbers.show();
+        }
         thislog.hide();
         overback.hide();
         overlayer.draw();
@@ -265,11 +273,11 @@ HanabiMsgLog.prototype.show_player_actions = function(player_name) {
 }
 
 HanabiMsgLog.prototype.reset = function() {
-    this.logtext.setText("");
-    this.logtext.setOffset({x: 0, y: 0});
+    this.logtext.reset();
+    this.lognumbers.reset();
     for (var i = 0; i < ui.player_names.length; i++) {
-        this.player_logs[i].setText("");
-        this.player_logs[i].setOffset({x: 0, y: 0});
+        this.player_logs[i].reset();
+        this.player_lognumbers[i].reset();
     }
 }
 
@@ -1993,6 +2001,15 @@ this.build_ui = function() {
 	});
 
 	message_prompt = new MultiFitText({
+        align: "center",
+        fontSize: .028 * win_h,
+        fontFamily: "Verdana",
+        fill: "#d8d5ef",
+        shadowColor: "black",
+        shadowBlur: 10,
+        shadowOffset: { x: 0, y: 0 },
+        shadowOpacity: 0.9,
+        listening: false,
 		x: .21 * win_w,
 		y: ( MHGA_show_more_log ? .238 : .25) * win_h,
 		width: .38 * win_w,

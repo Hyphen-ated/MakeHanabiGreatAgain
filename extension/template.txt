@@ -5,6 +5,7 @@ var MHGA_show_no_clues_box = document.getElementById("MHGA_show_no_clues_box").c
 var MHGA_beep_notifications = document.getElementById("MHGA_beep_notifications").checked;
 var MHGA_show_more_log = document.getElementById("MHGA_show_more_log").checked;
 var MHGA_show_debug_messages = document.getElementById("MHGA_show_debug_messages").checked;
+var MHGA_show_log_numbers = document.getElementById("MHGA_show_log_numbers").checked;
 
 var extensionId = "pjncmjjlphlcfkkkceidbepggnjnnkjj";
 
