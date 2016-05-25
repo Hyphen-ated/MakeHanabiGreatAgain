@@ -617,12 +617,13 @@ var CardDeck = function(config) {
 
 	this.add(this.cardback);
 
-    this.cardback.on("click tap", function() {
-        if(ui.replay) {
-            var targetNumber = prompt("Go To Number:");
+    var set_deck_number = function() {
+    if(ui.replay) {
+        var targetNumber = prompt("Go To Number:");
             ui.set_replay_by_cards_in_deck(targetNumber);
         }
-    });
+    }
+    this.cardback.on("click tap", set_deck_number);
 
 	this.count = new Kinetic.Text({
 		fill: "white",
@@ -639,6 +640,7 @@ var CardDeck = function(config) {
 		text: "0"
 	});
 
+    this.count.on("click tap", set_deck_number);
 	this.add(this.count);
 };
 
