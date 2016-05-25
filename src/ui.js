@@ -151,6 +151,129 @@ MultiFitText.prototype.reset = function() {
     this.smallHistory = [];
 }
 
+var HanabiMsgLog = function(config) {
+    var baseConfig = {
+        x: .2 * win_w,
+        y: .02 * win_h,
+        width: .4 * win_w,
+        height: .96 * win_h,
+        clipX: 0,
+        clipY: 0,
+        clipWidth: .4 * win_w,
+        clipHeight: .96 * win_h,
+        visible: false,
+        listening: false
+     };
+
+    $.extend(baseConfig, config);
+    Kinetic.Group.call(this, baseConfig);
+
+    var rect = new Kinetic.Rect({
+        x: 0,
+        y: 0,
+        width: .4 * win_w,
+        height: .96 * win_h,
+        fill: "black",
+        opacity: 0.9,
+        cornerRadius: .01 * win_w
+    });
+
+    Kinetic.Group.prototype.add.call(this,rect);
+
+    this.logtext = new Kinetic.Text({
+        fontSize: .025 * win_h,
+        fontFamily: "Verdana",
+        fill: "white",
+        x: .01 * win_w,
+        y: .01 * win_h,
+        width: .38 * win_w,
+        height: "auto"
+    });
+
+    Kinetic.Group.prototype.add.call(this,this.logtext);
+    this.player_logs = [];
+    for (var i = 0; i < ui.player_names.length; i++) {
+        this.player_logs[i] = new Kinetic.Text({
+            fontSize: .025 * win_h,
+            fontFamily: "Verdana",
+            fill: "white",
+            x: .01 * win_w,
+            y: .01 * win_h,
+            width: .38 * win_w,
+            height: "auto",
+            visible: false
+        });
+        Kinetic.Group.prototype.add.call(this,this.player_logs[i]);
+    }
+
+}
+
+Kinetic.Util.extend(HanabiMsgLog, Kinetic.Group);
+
+HanabiMsgLog.prototype.add_message = function(msg) {
+    var loggroup = this;
+    var append_line = function (log, line) {
+        var text = log.getText();
+
+        text = text + line + "\n";
+
+        log.setText(text);
+
+        var h = log.getHeight(), gh = loggroup.getHeight();
+        var th = log.getTextHeight();
+
+        gh -= .02 * win_h;
+
+        if (h > gh)
+        {
+            log.setOffset({x: 0, y: h - gh - th});
+        }
+    }
+
+    append_line(this.logtext, msg);
+    for (var i = 0; i < ui.player_names.length; i++) {
+        if(msg.startsWith(ui.player_names[i])) {
+            append_line(this.player_logs[i], msg);
+            break;
+        }
+    }
+}
+
+HanabiMsgLog.prototype.show_player_actions = function(player_name) {
+    var player_idx;
+    for (var i = 0; i < ui.player_names.length; i++) {
+        if(ui.player_names[i] == player_name) {
+            player_idx = i;
+        }
+    }
+    this.logtext.hide();
+    this.player_logs[player_idx].show();
+    this.show();
+
+    overback.show();
+    overlayer.draw();
+
+    var thislog = this;
+    overback.on("click tap", function() {
+        overback.off("click tap");
+        thislog.player_logs[player_idx].hide();
+        thislog.logtext.show();
+        thislog.hide();
+        overback.hide();
+        overlayer.draw();
+    });
+}
+
+HanabiMsgLog.prototype.reset = function() {
+    this.logtext.setText("");
+    this.logtext.setOffset({x: 0, y: 0});
+    for (var i = 0; i < ui.player_names.length; i++) {
+        this.player_logs[i].setText("");
+        this.player_logs[i].setOffset({x: 0, y: 0});
+    }
+}
+
+
 var HanabiCard = function(config) {
 	var self = this;
 
@@ -1160,7 +1283,10 @@ var HanabiNameFrame = function(config) {
 	}
 
 	this.name.setOffsetX(w / 2);
-
+	var nameTextObject = this.name;
+    this.name.on("click tap", function() {
+        msgloggroup.show_player_actions(nameTextObject.getText());
+    });
 	this.add(this.name);
 
 	w *= 1.4;
@@ -1760,7 +1886,7 @@ var clue_area, clue_target_group, clue_type_group, submit_clue;
 var no_clue_label, no_clue_box, no_discard_label;
 var exit_game, rewind_replay, advance_replay, lobby_button, help_button;
 var helpgroup;
-var msglog, msgloggroup, overback;
+var msgloggroup, overback;
 
 this.build_ui = function() {
 	var x, y, width, height, offset, radius;
@@ -1888,42 +2014,7 @@ this.build_ui = function() {
 
 	overlayer.add(overback);
 
-	msgloggroup = new Kinetic.Group({
-		x: .2 * win_w,
-		y: .02 * win_h,
-		width: .4 * win_w,
-		height: .96 * win_h,
-		clipX: 0,
-		clipY: 0,
-		clipWidth: .4 * win_w,
-		clipHeight: .96 * win_h,
-		visible: false,
-		listening: false
-	});
-
-	rect = new Kinetic.Rect({
-		x: 0,
-		y: 0,
-		width: .4 * win_w,
-		height: .96 * win_h,
-		fill: "black",
-		opacity: 0.9,
-		cornerRadius: .01 * win_w
-	});
-
-	msgloggroup.add(rect);
-
-	msglog = new Kinetic.Text({
-		fontSize: .025 * win_h,
-		fontFamily: "Verdana",
-		fill: "white",
-		x: .01 * win_w,
-		y: .01 * win_h,
-		width: .38 * win_w,
-		height: "auto"
-	});
-
-	msgloggroup.add(msglog);
+	msgloggroup = new HanabiMsgLog();
 
 	overlayer.add(msgloggroup);
 
@@ -2530,7 +2621,7 @@ this.reset = function() {
 	var i, suits;
 
 	message_prompt.setMultiText("");
-	msglog.setText("");
+	msgloggroup.reset();
 
 	suits = 5;
 
@@ -3274,21 +3365,7 @@ this.handle_action = function(data) {
 };
 
 this.set_message = function(msg) {
-	var text = msglog.getText();
-
-	text = text + msg.text + "\n";
-
-	msglog.setText(text);
-
-	var h = msglog.getHeight(), gh = msgloggroup.getHeight();
-	var th = msglog.getTextHeight();
-
-	gh -= .02 * win_h;
-
-	if (h > gh)
-	{
-		msglog.setOffset({x: 0, y: h - gh - th});
-	}
+    msgloggroup.add_message(msg.text);
 
 	message_prompt.setMultiText(msg.text);
 	if (!this.animate_fast) {
