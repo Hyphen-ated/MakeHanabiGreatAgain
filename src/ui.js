@@ -609,6 +609,13 @@ var CardDeck = function(config) {
 
 	this.add(this.cardback);
 
+    this.cardback.on("click tap", function() {
+        if(ui.replay) {
+            var targetNumber = prompt("Go To Number:");
+            ui.set_replay_by_cards_in_deck(targetNumber);
+        }
+    });
+
 	this.count = new Kinetic.Text({
 		fill: "white",
 		stroke: "black",
@@ -622,13 +629,6 @@ var CardDeck = function(config) {
 		fontFamily: "Verdana",
 		fontStyle: "bold",
 		text: "0"
-	});
-
-	this.count.on("click tap", function() {
-	    if(ui.replay) {
-	        var targetNumber = prompt("Go To Number:");
-            ui.set_replay_by_cards_in_deck(targetNumber);
-	    }
 	});
 
 	this.add(this.count);
