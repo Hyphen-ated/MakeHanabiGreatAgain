@@ -198,7 +198,7 @@ var HanabiMsgLog = function(config) {
     var numbersoptions = {
         fontSize: .025 * win_h,
         fontFamily: "Verdana",
-        fill: "red",
+        fill: "lightgrey",
         x: .01 * win_w,
         y: .01 * win_h,
         width: .03 * win_w,
