@@ -130,7 +130,7 @@ MultiFitText.prototype.setMultiText = function(text) {
     this.smallHistory.push(text);
     //performance optimization: setText on the children is slow, so don't actually do it until its time to display things.
     //we also have to call refresh_text after any time we manipulate replay position
-    if(!ui.animate_fast) {
+    if(!ui.replay || !ui.animate_fast) {
         this.refresh_text();
     }
 }
@@ -2789,7 +2789,7 @@ this.show_connected = function(list) {
 	{
 		name_frames[i].setConnected(list[i]);
 	}
-    if (!this.animate_fast) {
+    if (!this.replay || !this.animate_fast) {
 	    uilayer.draw();
 	}
 };
