@@ -12,6 +12,7 @@ function HanabiLobby() {
 	this.pass = null;
 
 	this.joined_table = false;
+	this.game_id = null;
 	this.game = {
 		name: "",
 		num_players: 0,
@@ -322,9 +323,9 @@ HanabiLobby.prototype.draw_tables = function() {
 			button.on("click", function(evt) {
 				evt.preventDefault();
 
-				var id = parseInt(this.id.slice(5));
+				self.game_id = parseInt(this.id.slice(5));
 
-				self.send_msg({type: "join_table", resp: {table_id: id}});
+				self.send_msg({type: "join_table", resp: {table_id: self.game_id}});
 
 				self.joined_table = true;
 				self.draw_tables();
@@ -338,9 +339,9 @@ HanabiLobby.prototype.draw_tables = function() {
 			button.on("click", function(evt) {
 				evt.preventDefault();
 
-				var id = parseInt(this.id.slice(7));
+				self.game_id = parseInt(this.id.slice(7));
 
-				self.send_msg({type: "reattend_table", resp: {table_id: id}});
+				self.send_msg({type: "reattend_table", resp: {table_id: self.game_id}});
 
 				self.joined_table = true;
 				self.draw_tables();
@@ -359,7 +360,7 @@ HanabiLobby.prototype.draw_tables = function() {
 				evt.preventDefault();
 
 				var id = parseInt(this.id.slice(8));
-
+                self.game_id = null;
 				if (self.table_list[id].running)
 				{
 					if (!confirm("Really abandon game?  This will cancel the game for all players."))
@@ -437,9 +438,9 @@ HanabiLobby.prototype.draw_history = function() {
 		button.on("click", function(evt) {
 			evt.preventDefault();
 
-			var id = parseInt(this.id.slice(16));
+			self.game_id = parseInt(this.id.slice(16));
 
-			self.send_msg({type: "history_details", resp: {id: id}});
+			self.send_msg({type: "history_details", resp: {id: self.game_id}});
 
 			self.show_history_details();
 		});
@@ -501,9 +502,9 @@ HanabiLobby.prototype.draw_history_details = function() {
 		button.on("click", function(evt) {
 			evt.preventDefault();
 
-			var id = parseInt(this.id.slice(7));
+			self.game_id = parseInt(this.id.slice(7));
 
-			self.send_msg({type: "start_replay", resp: {id: id}});
+			self.send_msg({type: "start_replay", resp: {id: self.game_id}});
 		});
 
 		attrs.append($("<li>").append(button).addClass("table-attr"));
@@ -619,7 +620,7 @@ HanabiLobby.prototype.game_started = function(data) {
 	this.hide_pregame();
 	this.show_game();
 
-	this.ui = new HanabiUI(this);
+	this.ui = new HanabiUI(this, this.game_id);
 
 	this.ui.set_backend(this.conn);
 };

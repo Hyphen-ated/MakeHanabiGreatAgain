@@ -1,6 +1,6 @@
 "use strict";
 
-function HanabiUI(lobby)
+function HanabiUI(lobby, game_id)
 {
 this.lobby = lobby;
 
@@ -392,7 +392,21 @@ var HanabiCard = function(config) {
 		visible: false
 	});
 
+
 	this.add(this.clue_given);
+
+    this.note_given = new Kinetic.Rect({
+        x: .854 * config.width,
+        y: .165 * config.height,
+        width: .09 * config.width,
+        height: .09 * config.width,
+        fill: "white",
+        stroke: "black",
+        strokeWidth: 4,
+        visible: false
+    })
+
+    this.add(this.note_given);
 
 	this.reset();
 };
@@ -401,7 +415,9 @@ Kinetic.Util.extend(HanabiCard, Kinetic.Group);
 
 HanabiCard.prototype.reset = function() {
 	this.hide_clues();
-
+    if(notes_written.hasOwnProperty(this.order)) {
+        this.note_given.show();
+    }
 	this.add_listeners();
 };
 
@@ -416,6 +432,24 @@ HanabiCard.prototype.add_listeners = function() {
 	this.on("mouseout", function() {
 		clue_log.showMatches(null);
 		uilayer.draw();
+	});
+
+	this.on("click", function(e) {
+	    if(!ui.replay && e.evt.which == 3) { //right click
+	        var note = ui.getNote(self.order);
+	        var newNote = prompt("Note on card:", note);
+	        if (newNote != null) {
+	            ui.setNote(self.order, newNote);
+	            note = newNote;
+	        }
+
+	        if (note) {
+	            self.note_given.show();
+	        } else {
+	            self.note_given.hide();
+	        }
+	        cardlayer.draw();
+	    }
 	});
 };
 
@@ -493,6 +527,7 @@ HanabiCard.prototype.hide_clues = function() {
 	this.color_clue.hide();
 	this.number_clue.hide();
 	this.clue_given.hide();
+	this.note_given.hide();
 	if(!MHGA_highlight_non_hand_cards) {
         this.off("mouseover tap");
         this.off("mouseout");
@@ -1434,6 +1469,9 @@ Loader.prototype.get = function(name) {
 };
 
 var ImageLoader = new Loader(function() {
+	if (!ui.replay) {
+	    notes_written = ui.load_notes_from_cookie();
+	}
 	ui.build_cards();
 	ui.build_ui();
 	ui.send_msg({type: "ready", resp: {}});
@@ -1914,6 +1952,7 @@ var no_clue_label, no_clue_box, no_discard_label;
 var exit_game, rewind_replay, advance_replay, lobby_button, help_button;
 var helpgroup;
 var msgloggroup, overback;
+var notes_written = {};
 
 this.build_ui = function() {
 	var x, y, width, height, offset, radius;
@@ -2906,6 +2945,29 @@ this.save_slot_information = function(note) {
         }
     }
 
+}
+
+this.getNote = function(card_order) {
+    return notes_written[card_order];
+}
+
+this.setNote = function(card_order, note) {
+    notes_written[card_order] = note;
+    this.save_notes_to_cookie();
+}
+
+this.load_notes_from_cookie = function() {
+    var cookie = getCookie(game_id);
+    if(cookie) {
+        return JSON.parse(cookie);
+    } else {
+        return {};
+    }
+}
+
+this.save_notes_to_cookie = function() {
+    var cookie = JSON.stringify(notes_written);
+    setCookie(game_id, cookie);
 }
 
 this.handle_notify = function(note, performing_replay) {
