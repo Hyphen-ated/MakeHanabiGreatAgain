@@ -21,6 +21,8 @@ with open('extension/template.txt', 'r') as template_file:
 
 shutil.copyfile("src/ui.js", "target/ui.js")
 shutil.copyfile("src/lobby.js", "target/lobby.js")
+shutil.copyfile("src/hanabi.css", "target/hanabi.css")
+
 
 #if you aren't me, just take this key stuff out.
 key_directory = "D:/home/code/hanabipem/"

@@ -110,23 +110,29 @@ function HanabiLobby() {
 		self.draw_history();
 	});
 
+    var optionsArea = $("#show-history").parent();
 
     var optionsButton = document.createElement("button");
     optionsButton.id = "show-options";
     optionsButton.innerHTML = "Options";
-    optionsButton.style.position = "relative";
-    //changing the text size is necessary to fit it nicely. the 2px relative adjustment makes the buttons line up.
-    //ideally i'd change all the buttons to align by the middle of the text, but i don't want to mess with the overall css
-    optionsButton.style.bottom = "2px";
-    optionsButton.style.width = "100px";
-    optionsButton.style.fontSize = "21px";
 
-	$("#show-history").parent().append(optionsButton);
-
+	optionsArea.append(optionsButton);
     $("#show-options").on("click", function(evt) {
         evt.preventDefault();
         chrome.runtime.sendMessage(extensionId, {action: "open-options"});
     });
+
+	var logoutButton = document.createElement("button");
+    logoutButton.id = "logout";
+    logoutButton.innerHTML = "Log Out";
+
+    optionsArea.append(logoutButton);
+    $("#logout").on("click", function(evt) {
+        deleteCookie("hanabiuser");
+        deleteCookie("hanabipass");
+        location.reload();
+    })
+
 
 	$(".return-table").on("click", function(evt) {
 		evt.preventDefault();
@@ -835,4 +841,13 @@ function setCookie(name, val)
 	expire.setDate(expire.getDate() + 365);
 	var cookie = escape(val) + "; expires=" + expire.toUTCString();
 	document.cookie = name + "=" + cookie;
+}
+
+function deleteCookie(name)
+{
+    if (document.cookie === undefined) return;
+    var expire = new Date();
+    expire.setDate(expire.getDate() - 1);
+    var cookie = "; expires=" + expire.toUTCString();
+    document.cookie = name + "=" + cookie;
 }

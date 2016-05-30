@@ -3,7 +3,7 @@ chrome.webRequest.onBeforeRequest.addListener(
     function(details) {
         return {cancel: true};
     },
-    {urls: ["*://keldon.net/hanabi/ui.js", "*://keldon.net/hanabi/lobby.js"]},
+    {urls: ["*://keldon.net/hanabi/ui.js", "*://keldon.net/hanabi/lobby.js", "*://keldon.net/hanabi/hanabi.css"]},
     ["blocking"]);
 
 chrome.runtime.onMessageExternal.addListener(
