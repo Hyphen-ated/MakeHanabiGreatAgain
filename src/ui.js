@@ -84,6 +84,7 @@ var FitText = function(config) {
 	Kinetic.Text.call(this, config);
 
 	this.origFontSize = this.getFontSize();
+	this.minFontSize = (config.minFontSize? config.minFontSize : 5);
 
 	this.resize();
 };
@@ -93,7 +94,7 @@ Kinetic.Util.extend(FitText, Kinetic.Text);
 FitText.prototype.resize = function() {
 	this.setFontSize(this.origFontSize);
 
-	while (this._getTextSize(this.getText()).width > this.getWidth() && this.getFontSize() > 5)
+	while (this._getTextSize(this.getText()).width > this.getWidth() && this.getFontSize() > this.minFontSize)
 	{
 		this.setFontSize(this.getFontSize() * 0.9);
 	}
@@ -322,6 +323,15 @@ var HanabiCard = function(config) {
 
 	this.add(bare);
 
+    this.invisible_target = new Kinetic.Rect({
+        width: config.width,
+        height: config.height,
+        fill: "white",
+        x: 0,
+        y: 0,
+        opacity: 0.00000001
+    })
+
 	this.unknown = (config.suit === undefined);
 	this.suit = config.suit || 0;
 	this.rank = config.rank || 0;
@@ -408,6 +418,57 @@ var HanabiCard = function(config) {
 
     this.add(this.note_given);
 
+
+    //there's some bug i cant figure out where it permanently draws a copy of the tag at this location, so i'll
+    //work around it by setting the starting location to this
+    this.tooltip = new Kinetic.Label({
+                       		x: -1000,
+                       		y: -1000
+                       		});
+
+    this.tooltip.add(new Kinetic.Tag({
+                             fill: '#3E4345',
+                             pointerDirection: 'left',
+                             pointerWidth: .02 * win_w,
+                             pointerHeight: .015 * win_h,
+                             lineJoin: 'round',
+                             shadowColor: 'black',
+                             shadowBlur: 10,
+                             shadowOffset: {x:3,y:3},
+                             shadowOpacity: 0.6
+                           }));
+
+    this.tooltip.add( new FitText({
+                   		fill: "white",
+                   		align: "left",
+                        padding: .01 * win_h,
+                        fontSize: .04 * win_h,
+                   		minFontSize: .02 * win_h,
+                   		width: 0.12 * win_w,
+                   		fontFamily: "Verdana",
+                   		text: ""
+                   		}));
+
+
+    tiplayer.add(this.tooltip);
+
+    this.invisible_target.on("mousemove", function() {
+        if(self.note_given.visible()) {
+            var mousePos = stage.getPointerPosition();
+            self.tooltip.setX(mousePos.x + 15);
+            self.tooltip.setY(mousePos.y + 5);
+
+            self.tooltip.show();
+            tiplayer.draw();
+        }
+    })
+
+    this.invisible_target.on("mouseout", function() {
+        self.tooltip.hide();
+        tiplayer.draw();
+    })
+    this.add(this.invisible_target);
+
 	this.reset();
 };
 
@@ -416,6 +477,8 @@ Kinetic.Util.extend(HanabiCard, Kinetic.Group);
 HanabiCard.prototype.reset = function() {
 	this.hide_clues();
     if(notes_written.hasOwnProperty(this.order)) {
+        this.tooltip.getText().setText(notes_written[this.order]);
+        this.tooltip.getTag().setWidth
         this.note_given.show();
     }
 	this.add_listeners();
@@ -439,6 +502,7 @@ HanabiCard.prototype.add_listeners = function() {
 	        var note = ui.getNote(self.order);
 	        var newNote = prompt("Note on card:", note);
 	        if (newNote != null) {
+	            self.tooltip.getText().setText(newNote);
 	            ui.setNote(self.order, newNote);
 	            note = newNote;
 	        }
@@ -1940,6 +2004,7 @@ var bglayer = new Kinetic.Layer();
 var cardlayer = new Kinetic.Layer();
 var uilayer = new Kinetic.Layer();
 var overlayer = new Kinetic.Layer();
+var tiplayer = new Kinetic.Layer();
 
 var player_hands = [];
 var drawdeck;
@@ -2689,6 +2754,7 @@ this.build_ui = function() {
 	stage.add(bglayer);
 	stage.add(uilayer);
 	stage.add(cardlayer);
+	stage.add(tiplayer);
 	stage.add(overlayer);
 };
 
