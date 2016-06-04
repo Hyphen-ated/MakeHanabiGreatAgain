@@ -3363,9 +3363,18 @@ this.handle_notify = function(note, performing_replay) {
 };
 
 var last_action_time = 0;
+var currently_have_action = false;
 this.handle_action = function(data) {
 
 	var i, child;
+
+    //the server sends us the "action" message whenever the player before reconnects, even though we already know it's
+    //our action. we should prevent that from making us re-do this stuff.
+    if(currently_have_action) {
+        return;
+    } else {
+        currently_have_action = true;
+    }
 
     var current_time = new Date().getTime();
     if (MHGA_beep_notifications && current_time - last_action_time > 1000) {
@@ -3402,6 +3411,7 @@ this.handle_action = function(data) {
 		}
 
 		submit_clue.off("click tap");
+		currently_have_action = false;
 	};
 
 	if (data.can_clue)
