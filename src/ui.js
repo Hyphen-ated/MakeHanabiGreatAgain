@@ -323,15 +323,6 @@ var HanabiCard = function(config) {
 
 	this.add(bare);
 
-    this.invisible_target = new Kinetic.Rect({
-        width: config.width,
-        height: config.height,
-        fill: "white",
-        x: 0,
-        y: 0,
-        opacity: 0.00000001
-    })
-
 	this.unknown = (config.suit === undefined);
 	this.suit = config.suit || 0;
 	this.rank = config.rank || 0;
@@ -452,7 +443,7 @@ var HanabiCard = function(config) {
 
     tiplayer.add(this.tooltip);
 
-    this.invisible_target.on("mousemove", function() {
+    this.on("mousemove", function() {
         if(self.note_given.visible()) {
             var mousePos = stage.getPointerPosition();
             self.tooltip.setX(mousePos.x + 15);
@@ -463,11 +454,10 @@ var HanabiCard = function(config) {
         }
     })
 
-    this.invisible_target.on("mouseout", function() {
+    this.on("mouseout", function() {
         self.tooltip.hide();
         tiplayer.draw();
     })
-    this.add(this.invisible_target);
 
 	this.reset();
 };
