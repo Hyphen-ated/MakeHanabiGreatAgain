@@ -1,5 +1,16 @@
 //use this little redirect thing to inject our js in the page context instead of extension sandbox, or something
-var src = chrome.extension.getURL('make_hanabi_great_again.user.js');
+var injectScript = function(filename) {
+    var src = chrome.extension.getURL(filename);
+    var newscript = document.createElement('script');
+    newscript.src = src;
+    newscript.onload = function() {
+        this.parentNode.removeChild(this);
+    };
+    (document.head || document.documentElement).appendChild(newscript);
+}
+
+injectScript('make_hanabi_great_again.user.js');
+
 
 //keep this in sync with the duplicate code in options.js
 var defined_options =
@@ -14,13 +25,6 @@ var defined_options =
 }
 
 chrome.storage.sync.get(defined_options, function(items) {
-    var newscript = document.createElement('script');
-    newscript.src = src;
-    newscript.onload = function() {
-        this.parentNode.removeChild(this);
-    };
-    (document.head || document.documentElement).appendChild(newscript);
-
     var hiddenCheckboxes = document.createElement('div');
     for (var key in items) {
         if(items.hasOwnProperty(key)) {
