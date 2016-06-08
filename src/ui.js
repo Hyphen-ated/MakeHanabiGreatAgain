@@ -467,9 +467,12 @@ Kinetic.Util.extend(HanabiCard, Kinetic.Group);
 HanabiCard.prototype.reset = function() {
 	this.hide_clues();
     if(notes_written.hasOwnProperty(this.order)) {
-        this.tooltip.getText().setText(notes_written[this.order]);
-        this.tooltip.getTag().setWidth
-        this.note_given.show();
+        var note = notes_written[this.order];
+        if (note) {
+            this.tooltip.getText().setText(note);
+            this.tooltip.getTag().setWidth
+            this.note_given.show();
+        }
     }
 	this.add_listeners();
 };
@@ -3008,7 +3011,11 @@ this.getNote = function(card_order) {
 }
 
 this.setNote = function(card_order, note) {
-    notes_written[card_order] = note;
+    if(note) {
+        notes_written[card_order] = note;
+    } else {
+        delete notes_written[card_order];
+    }
     this.save_notes_to_cookie();
 }
 
