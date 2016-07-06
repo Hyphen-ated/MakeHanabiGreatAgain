@@ -8,7 +8,7 @@
     "include_globs":    [ "*" ],
     "js":               [ "inject.js" ],
     "css":              [ "hanabi.css"],
-    "matches":          [   "*://keldon.net/hanabi/" ],
+    "matches":          [   "*://keldon.net/hanabi/", "*://www.keldon.net/hanabi/" ],
     "run_at": "document_end"
   } ],
   "options_ui": {
@@ -20,10 +20,11 @@
   "permissions": ["webRequest",
                   "storage",
                   "webRequestBlocking",
-                  "*://keldon.net/"],
+                  "*://keldon.net/",
+                  "*://www.keldon.net/"],
   "web_accessible_resources": ["make_hanabi_great_again.user.js"],
   "externally_connectable": {
-    "matches": ["*://keldon.net/hanabi/"]
+    "matches": ["*://keldon.net/hanabi/", "*://www.keldon.net/hanabi/"]
   },
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5lHoQnAWUo+2aZYDIIPNd8zwfHLvEOSHcjOYRmrCGYRKorO902U7EoWVp2JZ7Nc88MWpdJuIHoMNTIlAp6d7f7sLaGOzd7LhkMQEzWHt9qzTGM5okleCnz6iZfRbzbKb4RsWmienG6nVVdUYxPrOJVslMyFnbEbD4YzIOPqwkbsiBpgzHz2oLK2B/dJSyPvWBUSS9FVebyzGxxRMMFyX0gHMTItNGm8wZkjP6qa8Ifi8ZuhCM3lDvBsaZBAkwlZajSAyTNzTlVQXxvzjwvAIJSCT0965aoKLegg4U/FuUvAqfjW0ilif3vbn5WjA/wjmqg3jJGDLvNmKDvnU6bWK5QIDAQAB",
   "manifest_version": 2
