@@ -1527,7 +1527,7 @@ Loader.prototype.get = function(name) {
 
 var ImageLoader = new Loader(function() {
 	if (!ui.replay) {
-	    notes_written = ui.load_notes_from_cookie();
+	    notes_written = ui.load_notes();
 	}
 	ui.build_cards();
 	ui.build_ui();
@@ -3016,11 +3016,11 @@ this.setNote = function(card_order, note) {
     } else {
         delete notes_written[card_order];
     }
-    this.save_notes_to_cookie();
+    this.save_notes();
 }
 
-this.load_notes_from_cookie = function() {
-    var cookie = getCookie(game_id);
+this.load_notes = function() {
+    var cookie = localStorage.getItem(game_id);
     if(cookie) {
         return JSON.parse(cookie);
     } else {
@@ -3028,9 +3028,9 @@ this.load_notes_from_cookie = function() {
     }
 }
 
-this.save_notes_to_cookie = function() {
+this.save_notes = function() {
     var cookie = JSON.stringify(notes_written);
-    setCookie(game_id, cookie);
+    localStorage.setItem(game_id, cookie);
 }
 
 this.handle_notify = function(note, performing_replay) {
@@ -3359,26 +3359,19 @@ this.handle_notify = function(note, performing_replay) {
 	}
 };
 
-var last_action_time = 0;
 var currently_have_action = false;
 this.handle_action = function(data) {
 
 	var i, child;
 
     //the server sends us the "action" message whenever the player before reconnects, even though we already know it's
-    //our action. we should prevent that from making us re-do this stuff.
-    if(currently_have_action) {
-        return;
-    } else {
+    //our action. we should prevent that from making us re-do this beep.
+    if(! currently_have_action) {
         currently_have_action = true;
+        if (MHGA_beep_notifications) {
+            chrome.runtime.sendMessage(extensionId, {action: "make-beep"});
+        }
     }
-
-    var current_time = new Date().getTime();
-    if (MHGA_beep_notifications && current_time - last_action_time > 1000) {
-        chrome.runtime.sendMessage(extensionId, {action: "make-beep"});
-        last_action_time = current_time;
-    }
-
 
 	var stop_action = function() {
 		var i;
