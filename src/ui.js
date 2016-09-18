@@ -3390,7 +3390,8 @@ this.handle_notify = function(note, performing_replay) {
 };
 
 this.do_sound_event = function(sound_name) {
-    if (MHGA_beep_notifications) {
+    if ((MHGA_beep_notifications && sound_name == "your-turn")
+     || (MHGA_strange_beep_notifications && sound_name != "your-turn")) {
         chrome.runtime.sendMessage(extensionId, {action: "play-sound", sound: sound_name});
     }
 };
