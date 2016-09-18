@@ -3166,8 +3166,6 @@ this.handle_notify = function(note, performing_replay) {
 	else if (type == "discard")
 	{
 
-
-
 		child = ui.deck[note.which.order].parent;
         if (!this.animate_fast) {
             //discarding a clued card is strange. discarding an off-chop card is also strange
@@ -3345,7 +3343,6 @@ this.handle_notify = function(note, performing_replay) {
 		}
 		else
 		{
-		    this.do_sound_event("fail");
 			var t = new Kinetic.Tween({
 				node: x,
 				opacity: 1.0,
@@ -3388,6 +3385,9 @@ this.handle_notify = function(note, performing_replay) {
 };
 
 this.do_sound_event = function(sound_name) {
+    if(this.replay) {
+        return;
+    }
     if ((MHGA_beep_notifications && sound_name == "your-turn")
      || (MHGA_strange_beep_notifications && sound_name != "your-turn")) {
         chrome.runtime.sendMessage(extensionId, {action: "play-sound", sound: sound_name});
