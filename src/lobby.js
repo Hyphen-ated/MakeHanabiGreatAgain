@@ -360,7 +360,6 @@ HanabiLobby.prototype.draw_tables = function() {
 				evt.preventDefault();
 
 				var id = parseInt(this.id.slice(8));
-                self.game_id = null;
 				if (self.table_list[id].running)
 				{
 					if (!confirm("Really abandon game?  This will cancel the game for all players."))
@@ -368,7 +367,7 @@ HanabiLobby.prototype.draw_tables = function() {
 						return;
 					}
 				}
-
+                self.game_id = null;
 				self.send_msg({type: "abandon_table", resp: {table_id: id}});
 
 			});
@@ -523,6 +522,8 @@ HanabiLobby.prototype.table_joined = function(data) {
 	$("#joined-table").show();
 
 	this.show_joined();
+
+	this.game_id = data.table_id;
 };
 
 HanabiLobby.prototype.table_left = function(data) {
