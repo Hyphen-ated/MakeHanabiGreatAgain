@@ -3318,6 +3318,7 @@ this.handle_notify = function(note, performing_replay) {
 		}
 		else
 		{
+		    this.do_sound_event("fail");
 			var t = new Kinetic.Tween({
 				node: x,
 				opacity: 1.0,
@@ -3359,6 +3360,12 @@ this.handle_notify = function(note, performing_replay) {
 	}
 };
 
+this.do_sound_event = function(sound_name) {
+    if (MHGA_beep_notifications) {
+        chrome.runtime.sendMessage(extensionId, {action: "play-sound", sound: sound_name});
+    }
+};
+
 var currently_have_action = false;
 this.handle_action = function(data) {
 
@@ -3368,9 +3375,7 @@ this.handle_action = function(data) {
     //our action. we should prevent that from making us re-do this beep.
     if(! currently_have_action) {
         currently_have_action = true;
-        if (MHGA_beep_notifications) {
-            chrome.runtime.sendMessage(extensionId, {action: "make-beep"});
-        }
+        this.do_sound_event("your-turn");
     }
 
 	var stop_action = function() {
