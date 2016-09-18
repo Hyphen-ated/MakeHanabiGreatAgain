@@ -3132,9 +3132,15 @@ this.handle_notify = function(note, performing_replay) {
 
 	else if (type == "played")
 	{
-		show_clue_match(-1);
+
 
 		child = ui.deck[note.which.order].parent;
+
+        if (! child.children[0].clue_given.getVisible() && !this.animate_fast) {
+            this.do_sound_event("great");
+        }
+
+        show_clue_match(-1);
 
         if(!this.replay || performing_replay)
             this.save_slot_information(note);
@@ -3160,9 +3166,32 @@ this.handle_notify = function(note, performing_replay) {
 	else if (type == "discard")
 	{
 
-		show_clue_match(-1);
+
 
 		child = ui.deck[note.which.order].parent;
+        if (!this.animate_fast) {
+            //discarding a clued card is strange. discarding an off-chop card is also strange
+            if(child.children[0].clue_given.getVisible()) {
+                ui.do_sound_event("strange");
+                console.log("hmm");
+            } else {
+                //figure out whether this is an off-chop discard
+                //0 is chop, end of array is newest
+                for (i = 0; i < child.parent.children.length; ++i) {
+                    if (child.parent.children[i]._id == child._id) {
+                        break;
+                    } else if (!child.parent.children[i].children[0].clue_given.getVisible()) {
+                        //we've found a card thats rightward of our discarded card but doesnt have a clue
+                        //that means our current card is off-chop
+                        ui.do_sound_event("strange");
+                        console.log("humm");
+                        break;
+                    }
+                }
+            }
+        }
+
+        show_clue_match(-1);
 
         if(!this.replay || performing_replay)
             this.save_slot_information(note);
