@@ -75,6 +75,8 @@ function HanabiLobby() {
 		var variant = parseInt($("#create-game-variant").val());
 		var allow_spec = document.getElementById("create-game-allow-spec").checked;
 
+        localStorage.setItem("allow_spec", allow_spec);
+
 		evt.preventDefault();
 
 		self.send_msg({type: "create_table", resp: {name: game_name, max: max_players, variant: variant, allow_spec: allow_spec}});
@@ -228,6 +230,8 @@ HanabiLobby.prototype.hide_lobby = function() {
 
 HanabiLobby.prototype.show_create_dialog = function() {
 	$("#create-table-dialog").fadeIn(800);
+	var allow_spec = localStorage.getItem("allow_spec");
+	$("#create-game-allow-spec").prop('checked', JSON.parse(allow_spec));
 };
 
 HanabiLobby.prototype.hide_create_dialog = function() {
@@ -1032,3 +1036,4 @@ function deleteCookie(name)
     var cookie = "; expires=" + expire.toUTCString();
     document.cookie = name + "=" + cookie;
 }
+
