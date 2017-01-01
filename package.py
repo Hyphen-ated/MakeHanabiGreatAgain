@@ -19,8 +19,8 @@ with open('extension/template.txt', 'r') as template_file:
 
 
 
-shutil.copyfile("src/ui.js", "target/ui.js")
-shutil.copyfile("src/lobby.js", "target/lobby.js")
+#shutil.copyfile("src/ui.js", "target/ui.js")
+#shutil.copyfile("src/lobby.js", "target/lobby.js")
 shutil.copyfile("src/hanabi.css", "target/hanabi.css")
 
 
