@@ -314,6 +314,13 @@ HanabiLobby.prototype.draw_users = function() {
 HanabiLobby.prototype.add_table = function(data) {
 	this.table_list[data.id] = {name: data.name, num_players: data.num_players, max_players: data.max_players, variant: data.variant, joined: data.joined, allow_spec: data.allow_spec, running: data.running, our_turn: data.our_turn, owned: data.owned};
 	this.draw_tables();
+	if(!data.running) {
+	    //sometimes the server resets the id sequence for tables. if this happens, then a player can see old notes
+	    //from a previous game if their new game happens to share the id of an old one. to avoid this, any time we
+	    //see an un-started table, we remove any notes we might have in localstorage for a table with that id.
+	    //(this is the most reliable way I can see to avoid the problem without sometimes losing active game notes)
+        localStorage.removeItem(data.id);
+	}
 };
 
 HanabiLobby.prototype.remove_table = function(data) {
