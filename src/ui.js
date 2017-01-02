@@ -2707,7 +2707,7 @@ this.build_ui = function() {
 	});
 
 	button.on("click tap", function() {
-		ui.perform_replay(self.replay_turn - 1);
+		ui.perform_replay(self.replay_turn - 1, true);
 	});
 
 	replay_area.add(button);
@@ -2987,7 +2987,6 @@ this.perform_replay = function(target, fast) {
 	this.replay_turn = target;
 
 	this.adjust_replay_shuttle();
-
 	if (fast) this.animate_fast = true;
 
 	if (rewind)
@@ -3026,10 +3025,11 @@ this.perform_replay = function(target, fast) {
 	}
 
 	this.animate_fast = false;
+	msgloggroup.refresh_text();
+    message_prompt.refresh_text();
 	cardlayer.draw();
 	uilayer.draw();
-	msgloggroup.refresh_text();
-	message_prompt.refresh_text();
+
 };
 
 this.replay_advanced = function() {
