@@ -11,7 +11,11 @@ function HanabiLobby() {
 	this.username = null;
 	this.pass = null;
 
-	this.joined_table = false;
+	this.send_turn_notify = false;
+	this.send_turn_sound = false;
+	this.send_chat_notify = false;
+	this.send_chat_sound = false;
+
 	this.game = {
 		name: "",
 		num_players: 0,
@@ -23,6 +27,8 @@ function HanabiLobby() {
 	this.hide_lobby();
 	this.hide_create_dialog();
 	this.show_login();
+
+	this.load_settings();
 
 	$("#login-button").on("click", function(evt) {
 		evt.preventDefault();
@@ -66,12 +72,29 @@ function HanabiLobby() {
 		var game_name = $("#create-game-name").val();
 		var max_players = parseInt($("#create-game-players").val());
 		var variant = parseInt($("#create-game-variant").val());
+		var allow_spec = document.getElementById("create-game-allow-spec").checked;
 
 		evt.preventDefault();
 
-		self.send_msg({type: "create_table", resp: {name: game_name, max: max_players, variant: variant}});
+		self.send_msg({type: "create_table", resp: {name: game_name, max: max_players, variant: variant, allow_spec: allow_spec}});
 
 		self.hide_create_dialog();
+	});
+
+	$("#show-resources").on("click", function(evt) {
+		self.show_resources();
+	});
+
+	$("#close-resources").on("click", function(evt) {
+		self.hide_resources();
+	});
+
+	$("#show-settings").on("click", function(evt) {
+		self.show_settings();
+	});
+
+	$("#close-settings").on("click", function(evt) {
+		self.hide_settings();
 	});
 
 	$("#create-game-cancel").on("click", function(evt) {
@@ -128,6 +151,15 @@ function HanabiLobby() {
 	$("body").on("contextmenu", "#game", function(e) { return false; });
 }
 
+HanabiLobby.prototype.reset_lobby = function() {
+	this.user_list = {};
+	this.table_list = {};
+	this.history_list = {};
+	this.history_detail_list = [];
+	this.draw_users();
+	this.draw_tables();
+};
+
 HanabiLobby.prototype.send_login = function() {
 	$("#login-container").hide();
 	$("#connecting").show();
@@ -171,6 +203,22 @@ HanabiLobby.prototype.show_create_dialog = function() {
 
 HanabiLobby.prototype.hide_create_dialog = function() {
 	$("#create-table-dialog").fadeOut(800);
+};
+
+HanabiLobby.prototype.show_resources = function() {
+	$("#resources-dialog").fadeIn(800);
+};
+
+HanabiLobby.prototype.hide_resources = function() {
+	$("#resources-dialog").fadeOut(800);
+};
+
+HanabiLobby.prototype.show_settings = function() {
+	$("#settings-dialog").fadeIn(800);
+};
+
+HanabiLobby.prototype.hide_settings = function() {
+	$("#settings-dialog").fadeOut(800);
 };
 
 HanabiLobby.prototype.show_history_details = function() {
@@ -235,7 +283,7 @@ HanabiLobby.prototype.draw_users = function() {
 };
 
 HanabiLobby.prototype.add_table = function(data) {
-	this.table_list[data.id] = {name: data.name, num_players: data.num_players, max_players: data.max_players, variant: data.variant, joined: data.joined, running: data.running, our_turn: data.our_turn, owned: data.owned};
+	this.table_list[data.id] = {name: data.name, num_players: data.num_players, max_players: data.max_players, variant: data.variant, joined: data.joined, allow_spec: data.allow_spec, running: data.running, our_turn: data.our_turn, owned: data.owned};
 	this.draw_tables();
 };
 
@@ -271,7 +319,11 @@ HanabiLobby.prototype.draw_tables = function() {
 
 		turn = "Not Started";
 
-		if (this.table_list[i].running)
+		if (this.table_list[i].running && !this.table_list[i].joined)
+		{
+			turn = "Running";
+		}
+		else if (this.table_list[i].running)
 		{
 			if (this.table_list[i].our_turn)
 			{
@@ -285,12 +337,27 @@ HanabiLobby.prototype.draw_tables = function() {
 
 		attrs.append($("<li>").html(turn).addClass("table-attr table-turn"));
 
-		if (!this.table_list[i].joined)
+		if (!this.table_list[i].joined && this.table_list[i].allow_spec && this.table_list[i].running)
+		{
+			button = $("<button>").text("Spectate").attr("type", "button");
+			button.attr("id", "spectate-" + i);
+
+			button.on("click", function(evt) {
+				evt.preventDefault();
+
+				var id = parseInt(this.id.slice(9));
+
+				self.send_msg({type: "spectate_table", resp: {table_id: id}});
+
+				self.draw_tables();
+			});
+		}
+		else if (!this.table_list[i].joined)
 		{
 			button = $("<button>").text("Join").attr("type", "button");
 			button.attr("id", "join-" + i);
 
-			if (this.table_list[i].num_players >= this.table_list[i].max_players || this.joined_table)
+			if (this.table_list[i].num_players >= this.table_list[i].max_players)
 			{
 				button.attr("disabled", "disabled");
 			}
@@ -302,7 +369,6 @@ HanabiLobby.prototype.draw_tables = function() {
 
 				self.send_msg({type: "join_table", resp: {table_id: id}});
 
-				self.joined_table = true;
 				self.draw_tables();
 			});
 		}
@@ -318,7 +384,6 @@ HanabiLobby.prototype.draw_tables = function() {
 
 				self.send_msg({type: "reattend_table", resp: {table_id: id}});
 
-				self.joined_table = true;
 				self.draw_tables();
 			});
 		}
@@ -372,6 +437,21 @@ HanabiLobby.prototype.add_chat = function(data) {
 	chat.finish();
 	chat.append(line);
 	chat.animate({scrollTop: chat[0].scrollHeight}, 1000);
+
+	var r = new RegExp(this.username, "i");
+
+	if (data.who && r.test(data.msg))
+	{
+		if (this.send_chat_notify)
+		{
+			this.send_notify(data.who + " mentioned you in chat", "chat");
+		}
+
+		if (this.send_chat_sound)
+		{
+			this.play_sound("chat");
+		}
+	}
 };
 
 HanabiLobby.prototype.add_history = function(data) {
@@ -491,7 +571,6 @@ HanabiLobby.prototype.draw_history_details = function() {
 };
 
 HanabiLobby.prototype.table_joined = function(data) {
-	this.joined_table = true;
 	this.draw_tables();
 
 	$("#table-area").hide();
@@ -501,7 +580,6 @@ HanabiLobby.prototype.table_joined = function(data) {
 };
 
 HanabiLobby.prototype.table_left = function(data) {
-	this.joined_table = false;
 	this.draw_tables();
 
 	$("#table-area").show();
@@ -514,6 +592,7 @@ HanabiLobby.prototype.set_game = function(data) {
 	this.game.max_players = data.max_players;
 	this.game.variant = data.variant;
 	this.game.running = data.running;
+	this.game.allow_spec = data.allow_spec;
 
 	this.game.players.length = this.game.num_players;
 
@@ -543,6 +622,8 @@ HanabiLobby.prototype.show_joined = function() {
 	html += "<p>Players: " + this.game.num_players + "/" + this.game.max_players + "</p>";
 
 	html += "<p>Variant: " + variant_names[this.game.variant] + "</p>";
+
+	html += "<p>Allow Spectators: " + (this.game.allow_spec ? "Yes" : "No") + "</p>";
 
 	$("#joined-desc").html(html);
 
@@ -621,6 +702,7 @@ HanabiLobby.prototype.listen_conn = function(conn) {
 		if (msgType == "hello")
 		{
 			self.hide_login();
+			self.reset_lobby();
 			self.show_lobby();
 		}
 
@@ -789,10 +871,96 @@ HanabiLobby.prototype.set_conn = function(conn) {
 		console.log("attempting to reconnect");
 		if (self.username && self.pass) self.send_login();
 	});
+
+	window.onerror = function(message, url, lineno, colno, error) {
+		try
+		{
+			conn.emit("clienterror", {
+				message: message,
+				url: url,
+				lineno: lineno,
+				colno: colno,
+				stack: error.stack,
+				/*
+				 * ATTENTION EXTENSION AUTHORS:
+				 *
+				 * Please change "modified" to true so that
+				 * I won't chase down errors that may not
+				 * exist in my code.
+				 */
+				modified: false
+			});
+		}
+		catch (e)
+		{
+		}
+	};
 };
 
 HanabiLobby.prototype.send_msg = function(msg) {
 	this.conn.emit("message", msg);
+};
+
+HanabiLobby.prototype.load_settings = function() {
+	var self = this;
+	var settings_list = [
+		[ "send-turn-notification", "send_turn_notify" ],
+		[ "send-turn-sound", "send_turn_sound" ],
+		[ "send-chat-notification", "send_chat_notify" ],
+		[ "send-chat-sound", "send_chat_sound" ]
+	];
+	var i, val;
+
+	for (i = 0; i < settings_list.length; i++)
+	{
+		val = localStorage[settings_list[i][1]];
+		if (val !== undefined)
+		{
+			val = (val == "true");
+			$("#" + settings_list[i][0]).attr("checked", val);
+			this[settings_list[i][1]] = val;
+		}
+
+		$("#" + settings_list[i][0]).change(function() {
+			var name = $(this).attr("id");
+			var i;
+
+			for (i = 0; i < settings_list.length; i++)
+			{
+				if (settings_list[i][0] == name)
+				{
+					self[settings_list[i][1]] = $(this).is(":checked");
+					localStorage[settings_list[i][1]] = $(this).is(":checked");
+				}
+			}
+
+			if (self.send_turn_notify || self.send_chat_notify)
+			{
+				self.test_notifications();
+			}
+		});
+	}
+};
+
+HanabiLobby.prototype.test_notifications = function() {
+	if (!("Notification" in window)) return;
+
+	if (Notification.permission !== "default") return;
+
+	Notification.requestPermission();
+};
+
+HanabiLobby.prototype.send_notify = function(msg, tag) {
+	if (!("Notification" in window)) return;
+
+	if (Notification.permission !== "granted") return;
+
+	var n = new Notification("Hanabi: " + msg, { tag: tag });
+};
+
+HanabiLobby.prototype.play_sound = function(name) {
+	var a = new Audio("sounds/" + name + ".mp3");
+	a.play();
 };
 
 function getCookie(name)

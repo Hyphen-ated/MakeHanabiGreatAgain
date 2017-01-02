@@ -20,6 +20,9 @@ this.player_us = -1;
 this.player_names = [];
 this.variant = 0;
 this.replay = false;
+this.replay_only = false;
+this.spectating = false;
+this.replay_max = 0;
 this.animate_fast = true;
 this.ready = false;
 
@@ -35,11 +38,11 @@ function image_name(card) {
 	return name;
 };
 
-var scale_draw_image = function(context) {
+var scale_card_image = function(context, name) {
 	var width = this.getWidth();
 	var height = this.getHeight();
 	var am = this.getAbsoluteTransform();
-	var src = this.attrs.image;
+	var src = card_images[name];
 
 	if (!src) return;
 
@@ -52,11 +55,11 @@ var scale_draw_image = function(context) {
 	var scale_cvs, scale_ctx;
 	var steps = 0;
 
-	if (!this.scale_down) this.scale_down = [];
+	if (!scale_card_images[name]) scale_card_images[name] = [];
 
 	while (dw < sw / 2)
 	{
-		scale_cvs = this.scale_down[steps];
+		scale_cvs = scale_card_images[name][steps];
 		sw = Math.floor(sw / 2);
 		sh = Math.floor(sh / 2);
 
@@ -70,7 +73,7 @@ var scale_draw_image = function(context) {
 
 			scale_ctx.drawImage(src, 0, 0, sw, sh);
 
-			this.scale_down[steps] = scale_cvs;
+			scale_card_images[name][steps] = scale_cvs;
 		}
 
 		src = scale_cvs;
@@ -85,8 +88,12 @@ var FitText = function(config) {
 	Kinetic.Text.call(this, config);
 
 	this.origFontSize = this.getFontSize();
+	this.needs_resize = true;
 
-	this.resize();
+	this.setDrawFunc(function(context) {
+		if (this.needs_resize) this.resize();
+		Kinetic.Text.prototype._sceneFunc.call(this, context);
+	});
 };
 
 Kinetic.Util.extend(FitText, Kinetic.Text);
@@ -98,12 +105,14 @@ FitText.prototype.resize = function() {
 	{
 		this.setFontSize(this.getFontSize() * 0.9);
 	}
+
+	this.needs_resize = false;
 };
 
 FitText.prototype.setText = function(text) {
 	Kinetic.Text.prototype.setText.call(this, text);
 
-	this.resize();
+	this.needs_resize = true;
 };
 
 var HanabiCard = function(config) {
@@ -117,17 +126,16 @@ var HanabiCard = function(config) {
 
 	Kinetic.Group.call(this, config);
 
-	var bare = new Kinetic.Image({
-		name: "bare",
+	this.bare = new Kinetic.Image({
 		width: config.width,
 		height: config.height
 	});
 
-	bare.setDrawFunc(function(context) {
-		scale_draw_image.call(this, context);
+	this.bare.setDrawFunc(function(context) {
+		scale_card_image.call(this, context, self.barename);
 	});
 
-	this.add(bare);
+	this.add(this.bare);
 
 	this.unknown = (config.suit === undefined);
 	this.suit = config.suit || 0;
@@ -227,19 +235,7 @@ HanabiCard.prototype.add_listeners = function() {
 };
 
 HanabiCard.prototype.setBareImage = function() {
-	var name;
-	var img = this.get(".bare")[0];
-
-	name = image_name(this);
-
-	if (name == this.barename) return;
-
-	this.barename = name;
-
-	//img.setImage(ImageLoader.get(name));
-	img.setImage(card_images[name]);
-
-	img.scale_down = [];
+	this.barename = image_name(this);
 };
 
 HanabiCard.prototype.setIndicator = function(indicate, negative) {
@@ -252,7 +248,6 @@ HanabiCard.prototype.setIndicator = function(indicate, negative) {
 		this.indicateRect.setStroke("#ddeecc");
 	}
 	this.indicateRect.setVisible(indicate);
-	this.getLayer().batchDraw();
 };
 
 HanabiCard.prototype.add_clue = function(clue) {
@@ -603,21 +598,38 @@ var Button = function(config) {
 
 	this.add(background);
 
-	var text = new Kinetic.Text({
-		name: "text",
-		x: 0,
-		y: 0.2 * h,
-		width: w,
-		height: .6 * h,
-		listening: false,
-		fontSize: .5 * h,
-		fontFamily: "Verdana",
-		fill: "white",
-		align: "center",
-		text: config.text
-	});
+	if (config.text)
+	{
+		var text = new Kinetic.Text({
+			name: "text",
+			x: 0,
+			y: 0.2 * h,
+			width: w,
+			height: .6 * h,
+			listening: false,
+			fontSize: .5 * h,
+			fontFamily: "Verdana",
+			fill: "white",
+			align: "center",
+			text: config.text
+		});
 
-	this.add(text);
+		this.add(text);
+	}
+	else if (config.image)
+	{
+		var img = new Kinetic.Image({
+			name: "image",
+			x: 0.2 * w,
+			y: 0.2 * h,
+			width: .6 * w,
+			height: .6 * h,
+			listening: false,
+			image: ImageLoader.get(config.image)
+		});
+
+		this.add(img);
+	}
 
 	this.enabled = true;
 	this.pressed = false;
@@ -988,6 +1000,8 @@ var HanabiClueEntry = function(config) {
 
 			ui.deck[self.neglist[i]].setIndicator(true, true);
 		}
+
+		cardlayer.batchDraw();
 	});
 
 	background.on("mouseout", function() {
@@ -1139,7 +1153,8 @@ var Loader = function(cb) {
 
 	this.filemap = {};
 
-	var basic = [ "button", "button_pressed", "trashcan", "redx" ];
+	var basic = [ "button", "button_pressed", "trashcan", "redx", "replay",
+       			"rewind", "forward", "rewindfull", "forwardfull" ];
 	var i;
 
 	for (i = 0; i < basic.length; i++)
@@ -1230,6 +1245,8 @@ var show_clue_match = function(target, clue, show_neg) {
 		}
 	}
 
+	cardlayer.batchDraw();
+
 	if (target < 0) return;
 
 	for (i = 0; i < player_hands[target].children.length; i++)
@@ -1252,6 +1269,8 @@ var show_clue_match = function(target, clue, show_neg) {
 		}
 	}
 
+	cardlayer.batchDraw();
+
 	return match;
 };
 
@@ -1265,6 +1284,7 @@ var suit_colors = [
 ];
 
 var card_images = {};
+var scale_card_images = {};
 
 this.build_cards = function() {
 	var cvs, ctx;
@@ -1679,14 +1699,16 @@ var play_stacks = [], discard_stacks = [];
 var play_area, discard_area, clue_log;
 var clue_area, clue_target_group, clue_type_group, submit_clue;
 var no_clue_label, no_discard_label;
-var exit_game, rewind_replay, advance_replay, lobby_button, help_button;
+var replay_area, replay_bar, replay_shuttle, replay_button;
+var lobby_button, help_button;
 var helpgroup;
 var msglog, msgloggroup, overback;
 
 this.build_ui = function() {
+	var self = this;
 	var x, y, width, height, offset, radius;
 	var i, j;
-	var rect, img, text;
+	var rect, img, text, button;
 	var suits = 5;
 
 	if (this.variant) suits = 6;
@@ -2290,38 +2312,159 @@ this.build_ui = function() {
 
 	uilayer.add(clue_area);
 
-	rewind_replay = new Button({
+	replay_area = new Kinetic.Group({
 		x: .15 * win_w,
-		y: .53 * win_h,
-		width: .24 * win_w,
-		height: .08 * win_h,
-		text: "Rewind Replay",
-		visible: false
+		y: .51 * win_h,
+		width: .5 * win_w,
+		height: .27 * win_h
 	});
 
-	uilayer.add(rewind_replay);
-
-	advance_replay = new Button({
-		x: .4 * win_w,
-		y: .53 * win_h,
-		width: .24 * win_w,
-		height: .08 * win_h,
-		text: "Advance Replay",
-		visible: false
+	replay_bar = new Kinetic.Rect({
+		x: 0,
+		y: .03 * win_h,
+		width: .5 * win_w,
+		height: .01 * win_h,
+		fill: "black",
+		cornerRadius: .005 * win_h,
+		listening: false
 	});
 
-	uilayer.add(advance_replay);
+	replay_area.add(replay_bar);
 
-	exit_game = new Button({
-		x: .3 * win_w,
-		y: .63 * win_h,
+	rect = new Kinetic.Rect({
+		x: 0,
+		y: 0,
+		width: .5 * win_w,
+		height: .05 * win_h,
+		opacity: 0
+	});
+
+	rect.on("click", function(evt) {
+		var x = evt.evt.x - this.getAbsolutePosition().x;
+		var w = this.getWidth();
+		var step = w / self.replay_max;
+		var newturn = Math.floor((x + step / 2) / step);
+		if (newturn != self.replay_turn)
+		{
+			self.perform_replay(newturn, true);
+		}
+	});
+
+	replay_area.add(rect);
+
+	replay_shuttle = new Kinetic.Rect({
+		x: 0,
+		y: .02 * win_h,
+		width: .03 * win_w,
+		height: .03 * win_h,
+		fill: "#0000cc",
+		cornerRadius: .01 * win_w,
+		draggable: true,
+		dragBoundFunc: function(pos) {
+			var min = this.getParent().getAbsolutePosition().x;
+			var w = this.getParent().getWidth() - this.getWidth();
+			var y = this.getAbsolutePosition().y;
+			var x = pos.x - min;
+			if (x < 0) x = 0;
+			if (x > w) x = w;
+			var step = w / self.replay_max;
+			var newturn = Math.floor((x + step / 2) / step);
+			if (newturn != self.replay_turn)
+			{
+				self.perform_replay(newturn, true);
+			}
+			x = newturn * step;
+			return {x: min + x, y: y};
+		}
+	});
+
+	replay_shuttle.on("dragend", function() {
+		cardlayer.draw();
+		uilayer.draw();
+	});
+
+	replay_area.add(replay_shuttle);
+
+	button = new Button({
+		x: .1 * win_w,
+		y: .06 * win_h,
+		width: .06 * win_w,
+		height: .08 * win_h,
+		image: "rewindfull"
+	});
+
+	button.on("click tap", function() {
+		ui.perform_replay(0);
+	});
+
+	replay_area.add(button);
+
+	button = new Button({
+		x: .18 * win_w,
+		y: .06 * win_h,
+		width: .06 * win_w,
+		height: .08 * win_h,
+		image: "rewind"
+	});
+
+	button.on("click tap", function() {
+		ui.perform_replay(self.replay_turn - 1);
+	});
+
+	replay_area.add(button);
+
+	button = new Button({
+		x: .26 * win_w,
+		y: .06 * win_h,
+		width: .06 * win_w,
+		height: .08 * win_h,
+		image: "forward"
+	});
+
+	button.on("click tap", function() {
+		ui.perform_replay(self.replay_turn + 1);
+	});
+
+	replay_area.add(button);
+
+	button = new Button({
+		x: .34 * win_w,
+		y: .06 * win_h,
+		width: .06 * win_w,
+		height: .08 * win_h,
+		image: "forwardfull"
+	});
+
+	button.on("click tap", function() {
+		ui.perform_replay(self.replay_max, true);
+	});
+
+	replay_area.add(button);
+
+	button = new Button({
+		x: .15 * win_w,
+		y: .15 * win_h,
 		width: .2 * win_w,
-		height: .1 * win_h,
-		text: "Exit Game",
-		visible: false
+		height: .08 * win_h,
+		text: "Exit Replay"
 	});
 
-	uilayer.add(exit_game);
+	button.on("click tap", function() {
+		if (self.replay_only)
+		{
+			ui.send_msg({type: "unattend_table", resp: {}});
+			ui.lobby.game_ended();
+		}
+		else
+		{
+			self.enter_replay(false);
+		}
+	});
+
+	replay_area.add(button);
+
+	replay_area.hide();
+	uilayer.add(replay_area);
 
 	helpgroup = new Kinetic.Group({
 		x: .1 * win_w,
@@ -2368,12 +2511,27 @@ this.build_ui = function() {
 
 	helpgroup.add(text);
 
-	help_button = new Button({
+	replay_button = new Button({
 		x: .01 * win_w,
 		y: .8 * win_h,
 		width: .06 * win_w,
-		height: .13 * win_h,
-		text: "?"
+		height: .06 * win_h,
+		image: "replay",
+		visible: false
+	});
+
+	replay_button.on("click tap", function() {
+		self.enter_replay(!self.replay);
+	});
+
+	uilayer.add(replay_button);
+
+	help_button = new Button({
+		x: .01 * win_w,
+		y: .87 * win_h,
+		width: .06 * win_w,
+		height: .06 * win_h,
+		text: "Help"
 	});
 
 	uilayer.add(help_button);
@@ -2412,26 +2570,7 @@ this.build_ui = function() {
 
 	if (ui.replay)
 	{
-		rewind_replay.show();
-		advance_replay.show();
-		exit_game.show();
-
-		rewind_replay.on("click tap", function() {
-			ui.perform_replay(-1);
-		});
-
-		advance_replay.on("click tap", function() {
-			ui.perform_replay(1);
-		});
-
-		exit_game.on("click tap", function() {
-			rewind_replay.off("click tap");
-			advance_replay.off("click tap");
-			exit_game.off("click tap");
-
-			ui.send_msg({type: "abort", resp: {}});
-			ui.lobby.game_ended();
-		});
+		replay_area.show();
 	}
 
 	stage.add(bglayer);
@@ -2478,15 +2617,72 @@ this.reset = function() {
 	this.animate_fast = true;
 };
 
-this.perform_replay = function(amt) {
+this.save_replay = function(msg) {
+	var msgData = msg.resp;
+
+	this.replay_log.push(msg);
+
+	if (msgData.type == "turn")
+	{
+		this.replay_max = msgData.num;
+	}
+	if (msgData.type == "game_over")
+	{
+		this.replay_max++;
+	}
+
+	if (!this.replay_only && this.replay_max > 0) replay_button.show();
+
+	if (this.replay)
+	{
+		this.adjust_replay_shuttle();
+		uilayer.draw();
+	}
+}
+
+this.adjust_replay_shuttle = function() {
+	var w = replay_shuttle.getParent().getWidth() - replay_shuttle.getWidth();
+	replay_shuttle.setX(this.replay_turn * w / this.replay_max);
+};
+
+this.enter_replay = function(enter) {
+	if (!this.replay && enter)
+	{
+		this.replay = true;
+		this.replay_pos = this.replay_log.length;
+		this.replay_turn = this.replay_max;
+		this.adjust_replay_shuttle();
+		this.stop_action(true);
+		replay_area.show();
+		uilayer.draw();
+	}
+	else if (this.replay && !enter)
+	{
+		this.perform_replay(this.replay_max, true);
+		this.replay = false;
+		replay_area.hide();
+
+		if (saved_action) this.handle_action(saved_action);
+		uilayer.draw();
+	}
+};
+
+this.perform_replay = function(target, fast) {
 	var msg;
+	var rewind = false;
 
-	if (!this.replay_log[this.replay_pos] && amt > 0) return;
+	if (target < 0) target = 0;
+	if (target > this.replay_max) target = this.replay_max;
 
-	this.replay_turn += amt;
-	if (this.replay_turn < 0) this.replay_turn = 0;
+	if (target < this.replay_turn) rewind = true;
 
-	if (amt < 0)
+	this.replay_turn = target;
+
+	this.adjust_replay_shuttle();
+
+	if (fast) this.animate_fast = true;
+
+	if (rewind)
 	{
 		this.reset();
 		this.replay_pos = 0;
@@ -2515,16 +2711,14 @@ this.perform_replay = function(amt) {
 		{
 			if (msg.resp.num == this.replay_turn)
 			{
-				if (amt < 0)
-				{
-					this.animate_fast = false;
-					cardlayer.draw();
-				}
-
 				break;
 			}
 		}
 	}
+
+	this.animate_fast = false;
+	cardlayer.draw();
+	uilayer.draw();
 };
 
 this.replay_advanced = function() {
@@ -2779,7 +2973,7 @@ this.handle_notify = function(note) {
 		ui.deck[note.which.order].setBareImage();
 		ui.deck[note.which.order].hide_clues();
 
-		cardlayer.draw();
+		if (!this.animate_fast) cardlayer.draw();
 	}
 
 	else if (type == "clue")
@@ -2791,7 +2985,8 @@ this.handle_notify = function(note) {
 			ui.deck[note.list[i]].setIndicator(true);
 			ui.deck[note.list[i]].clue_given.show();
 
-			if (note.target == ui.player_us && !ui.replay)
+			if (note.target == ui.player_us && !ui.replay_only &&
+			    !ui.spectating)
 			{
 				ui.deck[note.list[i]].add_clue(note.clue);
 			}
@@ -2854,7 +3049,7 @@ this.handle_notify = function(note) {
 		}
 
 		score_label.setText("Score: " + note.score);
-		uilayer.draw();
+		if (!this.animate_fast) uilayer.draw();
 	}
 
 	else if (type == "strike")
@@ -2894,34 +3089,27 @@ this.handle_notify = function(note) {
 			name_frames[i].setActive(note.who == i);
 		}
 
-		uilayer.draw();
+		if (!this.animate_fast) uilayer.draw();
 	}
 
 	else if (type == "game_over")
 	{
-		exit_game.show();
-
-		if (!this.replay)
-		{
-			exit_game.off("click tap");
-
-			exit_game.on("click tap", function() {
-				exit_game.off("click tap");
-
-				ui.lobby.game_ended();
-			});
-		}
-
-		uilayer.draw();
+		this.replay_only = true;
+		replay_button.hide();
+		if (!this.replay) this.enter_replay(true);
+		if (!this.animate_fast) uilayer.draw();
 	}
 };
 
-this.handle_action = function(data) {
-
+this.stop_action = function(fast) {
 	var i, child;
 
-	var stop_action = function() {
-		var i;
+	if (fast)
+	{
+		clue_area.hide();
+	}
+	else
+	{
 		var t = new Kinetic.Tween({
 			node: clue_area,
 			opacity: 0.0,
@@ -2931,23 +3119,34 @@ this.handle_action = function(data) {
 				clue_area.hide();
 			}
 		}).play();
+	}
 
-		no_clue_label.hide();
-		no_discard_label.hide();
+	no_clue_label.hide();
+	no_discard_label.hide();
 
-		clue_target_group.off("change");
-		clue_type_group.off("change");
+	clue_target_group.off("change");
+	clue_type_group.off("change");
 
-		for (i = 0; i < player_hands[ui.player_us].children.length; i++)
-		{
-			child = player_hands[ui.player_us].children[i];
+	for (i = 0; i < player_hands[ui.player_us].children.length; i++)
+	{
+		child = player_hands[ui.player_us].children[i];
 
-			child.off("dragend.play");
-			child.setDraggable(false);
-		}
+		child.off("dragend.play");
+		child.setDraggable(false);
+	}
 
-		submit_clue.off("click tap");
-	};
+	submit_clue.off("click tap");
+};
+
+var saved_action = null;
+
+this.handle_action = function(data) {
+	var self = this;
+	var i, child;
+
+	saved_action = data;
+
+	if (this.replay) return;
 
 	if (data.can_clue)
 	{
@@ -3003,10 +3202,12 @@ this.handle_action = function(data) {
 			{
 				ui.send_msg({type: "action", resp: {type: ACT.PLAY, target: this.children[0].order}});
 
-				stop_action();
+				self.stop_action();
 
 				/* this.off("dragend.reorder"); */
 				this.setDraggable(false);
+
+				saved_action = null;
 			}
 
 			else if (pos.x >= discard_area.getX() &&
@@ -3016,10 +3217,12 @@ this.handle_action = function(data) {
 				 data.can_discard)
 			{
 				ui.send_msg({type: "action", resp: {type: ACT.DISCARD, target: this.children[0].order}});
-				stop_action();
+				self.stop_action();
 
 				/* this.off("dragend.reorder"); */
 				this.setDraggable(false);
+
+				saved_action = null;
 			}
 
 			else
@@ -3066,7 +3269,9 @@ this.handle_action = function(data) {
 
 		ui.send_msg({type: "action", resp: {type: ACT.CLUE, target: target.target_index, clue: type.clue_type}});
 
-		stop_action();
+		self.stop_action();
+
+		saved_action = null;
 	});
 };
 
@@ -3088,8 +3293,11 @@ this.set_message = function(msg) {
 	}
 
 	message_prompt.setText(msg.text);
-	uilayer.draw();
-	overlayer.draw();
+	if (!this.animate_fast)
+	{
+		uilayer.draw();
+		overlayer.draw();
+	}
 };
 
 this.destroy = function() {
@@ -3121,7 +3329,8 @@ HanabiUI.prototype.handle_message = function(msg) {
 		this.player_us = msgData.seat;
 		this.player_names = msgData.names;
 		this.variant = msgData.variant;
-		this.replay = msgData.replay;
+		this.replay = this.replay_only = msgData.replay;
+		this.spectating = msgData.spectating;
 
 		this.load_images();
 	}
@@ -3138,7 +3347,7 @@ HanabiUI.prototype.handle_message = function(msg) {
 
 	if (msgType == "notify")
 	{
-		this.replay_log.push(msg);
+		this.save_replay(msg);
 
 		if (!this.replay)
 		{
@@ -3149,6 +3358,18 @@ HanabiUI.prototype.handle_message = function(msg) {
 	if (msgType == "action")
 	{
 		this.handle_action.call(this, msgData);
+
+		if (this.animate_fast) return;
+
+		if (this.lobby.send_turn_notify)
+		{
+			this.lobby.send_notify("It's your turn", "turn");
+		}
+
+		if (this.lobby.send_turn_sound)
+		{
+			this.lobby.play_sound("turn");
+		}
 	}
 };
 
