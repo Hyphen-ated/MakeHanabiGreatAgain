@@ -146,12 +146,6 @@ function HanabiLobby() {
         chrome.runtime.sendMessage(extensionId, {action: "open-options"});
     });
 
-	// Hide the settings related to sending turn sounds.
-	// Those are sent from a different ui implementation.
-	var turnNotificationsOptions = $("#send-turn-sound").parents().eq(2);
-	turnNotificationsOptions.siblings().eq(1).remove();
-	turnNotificationsOptions.remove();
-
 	var logoutButton = document.createElement("button");
     logoutButton.id = "logout";
     logoutButton.innerHTML = "Log Out";
