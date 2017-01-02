@@ -3507,7 +3507,6 @@ this.handle_notify = function(note, performing_replay) {
 	}
 };
 
-var currently_have_action = false;
 this.stop_action = function(fast) {
 	var i, child;
 
@@ -3544,21 +3543,12 @@ this.stop_action = function(fast) {
 	}
 
 	submit_clue.off("click tap");
-	currently_have_action = false;
 };
 
 var saved_action = null;
 
 this.handle_action = function(data) {
 
-    //the server sends us the "action" message whenever the player before reconnects, even though we already know it's
-    //our action. we should prevent that from making us re-do this beep.
-    if(! currently_have_action) {
-        currently_have_action = true;
-        if (MHGA_beep_notifications) {
-            chrome.runtime.sendMessage(extensionId, {action: "make-beep"});
-        }
-    }
 	var self = this;
 	var i, child;
 
@@ -3797,6 +3787,10 @@ HanabiUI.prototype.handle_message = function(msg) {
 		{
 			this.lobby.play_sound("turn");
 		}
+
+		if (MHGA_beep_notifications) {
+            chrome.runtime.sendMessage(extensionId, {action: "make-beep"});
+        }
 	}
 };
 
