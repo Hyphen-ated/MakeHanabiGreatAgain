@@ -360,7 +360,7 @@ var HanabiCard = function(config) {
 		width: .4 * config.width,
 		height: .282 * config.height,
 		stroke: "black",
-		strokeWidth: 12,
+		strokeWidth: 12, 
 		cornerRadius: 12,
 		fillLinearGradientStartPoint: {x: 0, y: 0},
 		fillLinearGradientEndPoint: {x: .4 * config.width, y: .282 * config.height},
