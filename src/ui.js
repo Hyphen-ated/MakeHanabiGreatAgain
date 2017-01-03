@@ -354,9 +354,18 @@ var HanabiCard = function(config) {
 
 	this.add(this.indicateRect);
 
+    this.color_clue_group = new Kinetic.Group({
+        x: .3 * config.width,
+        y: .1 * config.height,
+        width: .4 * config.width,
+        height: .282 * config.height,
+        visible: false
+
+    })
+
+    this.add(this.color_clue_group);
+
 	this.color_clue = new Kinetic.Rect({
-		x: .3 * config.width,
-		y: .1 * config.height,
 		width: .4 * config.width,
 		height: .282 * config.height,
 		stroke: "black",
@@ -364,11 +373,28 @@ var HanabiCard = function(config) {
 		cornerRadius: 12,
 		fillLinearGradientStartPoint: {x: 0, y: 0},
 		fillLinearGradientEndPoint: {x: .4 * config.width, y: .282 * config.height},
-		fillLinearGradientColorStops: [ 0, "black" ],
-		visible: false
+		fillLinearGradientColorStops: [ 0, "black" ]
 	});
 
-	this.add(this.color_clue);
+    this.color_clue_group.add(this.color_clue);
+
+    this.color_clue_letter = new Kinetic.Text({
+        width: .4 * config.width,
+        height: .282 * config.height,
+        align: "center",
+        fontFamily: "Verdana",
+        fontSize: .25 * config.height,
+        fill: "#d8d5ef",
+        stroke: "black",
+        strokeWidth: 4,
+        shadowOpacity: 0.9,
+        shadowColor: "black",
+        shadowOffset: {x: 0, y: 1 },
+        shadowBlur: 2,
+        text: "",
+        visible: MHGA_colorblind_mode
+    })
+    this.color_clue_group.add(this.color_clue_letter);
 
 	this.number_clue = new Kinetic.Text({
 		x: .3 * config.width,
@@ -544,11 +570,16 @@ HanabiCard.prototype.add_clue = function(clue) {
 		if (grad.length == 2)
 		{
 			this.color_clue.setFillLinearGradientColorStops([0, suit_colors[clue.value], 1, suit_colors[clue.value]]);
+			this.color_clue_letter.setText(suit_abbreviations[clue.value]);
 		}
 		else if (grad[1] == grad[3])
 		{
 			grad[3] = suit_colors[clue.value];
 			this.color_clue.setFillLinearGradientColorStops(grad);
+
+			if(grad[i] != suit_colors[clue.value]) {
+			    this.color_clue_letter.setText("M");
+			}
 		}
 		else
 		{
@@ -564,9 +595,10 @@ HanabiCard.prototype.add_clue = function(clue) {
 			grad.push(1);
 			grad.push(suit_colors[clue.value]);
 			this.color_clue.setFillLinearGradientColorStops(grad);
+			this.color_clue_letter.setText("M");
 		}
 
-		this.color_clue.show();
+		this.color_clue_group.show();
 	}
 	else
 	{
@@ -576,7 +608,7 @@ HanabiCard.prototype.add_clue = function(clue) {
 };
 
 HanabiCard.prototype.hide_clues = function() {
-	this.color_clue.hide();
+	this.color_clue_group.hide();
 	this.number_clue.hide();
 	this.clue_given.hide();
 	this.note_given.hide();
@@ -1069,6 +1101,24 @@ var ColorButton = function(config) {
 
 	this.add(color);
 
+	var text = new Kinetic.Text({
+        x: 0,
+        y: 0.2 * h,
+        width: w,
+        height: .6 * h,
+        listening: false,
+        fontSize: .5 * h,
+        fontFamily: "Verdana",
+        fill: "white",
+        stroke: "black",
+        strokeWidth: 1,
+        align: "center",
+        text: config.text,
+        visible: MHGA_colorblind_mode
+    });
+
+    this.add(text);
+
 	this.pressed = false;
 
 	this.clue_type = config.clue_type;
@@ -1284,6 +1334,23 @@ var HanabiClueEntry = function(config) {
 
 	this.add(type);
 
+	var negative_marker = new Kinetic.Text({
+	    x: .88 * w,
+        y: 0,
+        width: .2 * w,
+        height: h,
+        align: "center",
+        fontSize: 0.9 * h,
+        fontFamily: "Verdana",
+        fill: "white",
+        text: "✘",
+        listening: false,
+        visible: false
+	});
+
+	this.negative_marker = negative_marker;
+	this.add(negative_marker);
+
 	this.list = config.list;
 	this.neglist = config.neglist;
 
@@ -1358,6 +1425,7 @@ HanabiClueEntry.prototype.showMatch = function(target) {
 
 	this.background.setOpacity(0.1);
 	this.background.setFill("white");
+	this.negative_marker.setVisible(false);
 
 	for (i = 0; i < this.list.length; i++)
 	{
@@ -1373,6 +1441,9 @@ HanabiClueEntry.prototype.showMatch = function(target) {
 		{
 			this.background.setOpacity(0.4);
 			this.background.setFill("#ff7777");
+			if(MHGA_colorblind_mode) {
+			    this.negative_marker.setVisible(true);
+			}
 		}
 	}
 };
@@ -1791,22 +1862,36 @@ this.build_cards = function() {
 				ctx.fillStyle = grad;
 			}
 
+			var suit_letter = suit_abbreviations[i];
+            if(suit_letter == "K" && rainbow) {
+                suit_letter = "M";
+            }
+
+
 			ctx.strokeStyle = "black";
 			ctx.lineWidth = 2;
 			ctx.lineJoin = "round";
+			var text_y_pos = 110;
 			ctx.font = "bold 96pt Arial";
+			var index_label = j.toString();
+			if(MHGA_colorblind_mode) {
+			    ctx.font = "bold 68pt Arial";
+			    text_y_pos = 83;
+			    index_label = suit_letter + j.toString();
+			}
+
 			ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-			ctx.fillText(j.toString(), 19, 110);
+			ctx.fillText(index_label, 19, text_y_pos);
 			ctx.shadowColor = "rgba(0, 0, 0, 0)";
-			ctx.strokeText(j.toString(), 19, 110);
+			ctx.strokeText(index_label, 19, text_y_pos);
 
 			ctx.save();
 			ctx.translate(cardw, cardh);
 			ctx.rotate(Math.PI);
 			ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-			ctx.fillText(j.toString(), 19, 110);
+			ctx.fillText(index_label, 19, text_y_pos);
 			ctx.shadowColor = "rgba(0, 0, 0, 0)";
-			ctx.strokeText(j.toString(), 19, 110);
+			ctx.strokeText(index_label, 19, text_y_pos);
 			ctx.restore();
 
 			if (i == 5 && rainbow)
@@ -1837,9 +1922,13 @@ this.build_cards = function() {
 
 			if (j > 1)
 			{
+			    var symbol_y_pos = 120;
+			    if(MHGA_colorblind_mode) {
+			        symbol_y_pos = 85;
+			    }
 				ctx.save();
 				ctx.translate(cardw / 2, cardh / 2);
-				ctx.translate(0, -120);
+				ctx.translate(0, -symbol_y_pos);
 				ctx.scale(0.4, 0.4);
 				ctx.translate(-75, -100);
 				pathfuncs[i]();
@@ -1848,7 +1937,7 @@ this.build_cards = function() {
 
 				ctx.save();
 				ctx.translate(cardw / 2, cardh / 2);
-				ctx.translate(0, 120);
+				ctx.translate(0, symbol_y_pos);
 				ctx.scale(0.4, 0.4);
 				ctx.rotate(Math.PI);
 				ctx.translate(-75, -100);
@@ -1882,6 +1971,13 @@ this.build_cards = function() {
 			if (j == 0)
 			{
 				ctx.clearRect(0, 0, cardw, cardh);
+				if(MHGA_colorblind_mode) {
+                    ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+                    ctx.fillText(suit_letter, 19, 83);
+                    ctx.shadowColor = "rgba(0, 0, 0, 0)";
+                    ctx.strokeText(suit_letter, 19, 83);
+                }
+
 			}
 
 			if (j == 0 || j == 5)
@@ -2589,6 +2685,7 @@ this.build_ui = function() {
 			width: .04 * win_w,
 			height: .071 * win_h,
 			color: suit_colors[i],
+			text: suit_abbreviations[i],
 			clue_type: {type: CLUE.SUIT, value: i}
 		});
 
@@ -3111,6 +3208,15 @@ var suit_names = [
 	"Purple",
 	"Black"
 ];
+
+var suit_abbreviations = [
+    "B",
+    "G",
+    "Y",
+    "R",
+    "P",
+    "K"
+]
 
 
 //the idea here is we get these two events, one with the server telling us to print a message like "Bob discards Blue 1"

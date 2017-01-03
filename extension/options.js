@@ -7,7 +7,8 @@ var defined_options =
     "MHGA_beep_notifications": false,
     "MHGA_show_more_log": true,
     "MHGA_show_debug_messages": false,
-    "MHGA_show_log_numbers": true
+    "MHGA_show_log_numbers": true,
+    "MHGA_colorblind_mode": false
 }
 
 // Saves options to chrome.storage.sync.
