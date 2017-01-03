@@ -25,16 +25,24 @@ this.spectating = false;
 this.replay_max = 0;
 this.animate_fast = true;
 this.ready = false;
+//in replays, we can show a grayed-out version of a card face if it was not known at the time, but we know it now.
+//these are cards we have "learned"
+this.learned_cards = [];
 
 function image_name(card) {
+    var learned = ui.learned_cards[card.order];
+    if (learned) {
+        var name = "card-";
+        name += learned.suit + "-";
+        name += learned.rank;
+        return name;
+    }
 
 	if (card.unknown) return "card-back";
 
 	var name = "card-";
-
 	name += card.suit + "-";
 	name += card.rank;
-
 	return name;
 };
 
@@ -335,6 +343,10 @@ var HanabiCard = function(config) {
 	this.suit = config.suit || 0;
 	this.rank = config.rank || 0;
 	this.order = config.order;
+
+    if(!this.unknown) {
+        ui.learned_cards[this.order] = {suit: this.suit, rank: this.rank};
+    }
 
 	this.barename = "";
 
@@ -3414,6 +3426,7 @@ this.handle_notify = function(note, performing_replay) {
 		ui.deck[note.which.order].unknown = false;
 		ui.deck[note.which.order].setBareImage();
 		ui.deck[note.which.order].hide_clues();
+		ui.learned_cards[note.which.order] = {suit: note.which.suit, rank: note.which.rank};
 
 		pos = child.getAbsolutePosition();
 		child.setRotation(child.parent.getRotation());
@@ -3441,6 +3454,7 @@ this.handle_notify = function(note, performing_replay) {
 		ui.deck[note.which.order].unknown = false;
 		ui.deck[note.which.order].setBareImage();
 		ui.deck[note.which.order].hide_clues();
+		ui.learned_cards[note.which.order] = {suit: note.which.suit, rank: note.which.rank};;
 
 		pos = child.getAbsolutePosition();
 		child.setRotation(child.parent.getRotation());
@@ -3482,6 +3496,7 @@ this.handle_notify = function(note, performing_replay) {
 		ui.deck[note.which.order].unknown = false;
 		ui.deck[note.which.order].setBareImage();
 		ui.deck[note.which.order].hide_clues();
+		ui.learned_cards[note.which.order] = {suit: note.which.suit, rank: note.which.rank};;
 
 		if (!this.animate_fast) cardlayer.draw();
 	}
