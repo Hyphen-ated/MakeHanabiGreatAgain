@@ -397,7 +397,7 @@ HanabiLobby.prototype.draw_tables = function() {
 				evt.preventDefault();
 
 				var id = parseInt(this.id.slice(9));
-
+				self.game_id = id;
 				self.send_msg({type: "spectate_table", resp: {table_id: id}});
 
 				self.draw_tables();
