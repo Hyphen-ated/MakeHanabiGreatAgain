@@ -2795,7 +2795,7 @@ this.build_ui = function() {
 
 	replay_bar = new Kinetic.Rect({
 		x: 0,
-		y: .03 * win_h,
+		y: .04 * win_h,
 		width: .5 * win_w,
 		height: .01 * win_h,
 		fill: "black",
@@ -2828,7 +2828,7 @@ this.build_ui = function() {
 
 	replay_shuttle = new Kinetic.Rect({
 		x: 0,
-		y: .02 * win_h,
+		y: .03 * win_h,
 		width: .03 * win_w,
 		height: .03 * win_h,
 		fill: "#0000cc",
