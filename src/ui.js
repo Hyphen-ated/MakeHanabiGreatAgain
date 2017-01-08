@@ -3943,6 +3943,9 @@ HanabiUI.prototype.handle_message = function(msg) {
 		this.player_names = msgData.names;
 		this.variant = msgData.variant;
 		this.replay = this.replay_only = msgData.replay;
+		if(this.replay_only) {
+		    this.replay_turn = -1;
+		}
 		this.spectating = msgData.spectating;
 
 		this.load_images();
