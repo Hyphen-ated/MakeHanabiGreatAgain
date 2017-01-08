@@ -3152,6 +3152,10 @@ this.perform_replay = function(target, fast) {
 
 	if (target < this.replay_turn) rewind = true;
 
+    if(this.replay_turn == target) {
+        return; //we're already there, nothing to do!
+    }
+
 	this.replay_turn = target;
 
 	this.adjust_replay_shuttle();
