@@ -3123,7 +3123,11 @@ this.enter_replay = function(enter) {
 		this.adjust_replay_shuttle();
 		this.stop_action(true);
 		replay_area.show();
+		for (var i = 0; i < this.deck.length; ++i) {
+            this.deck[i].setBareImage();
+        }
 		uilayer.draw();
+		cardlayer.draw();
 	}
 	else if (this.replay && !enter)
 	{
@@ -3136,6 +3140,7 @@ this.enter_replay = function(enter) {
 		    this.deck[i].setBareImage();
 		}
 		uilayer.draw();
+		cardlayer.draw();
 	}
 };
 
