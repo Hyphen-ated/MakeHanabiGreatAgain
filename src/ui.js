@@ -30,20 +30,31 @@ this.ready = false;
 this.learned_cards = [];
 
 function image_name(card) {
-    var learned = ui.learned_cards[card.order];
-    if (learned) {
+    if(!card.unknown) {
         var name = "card-";
-        name += learned.suit + "-";
-        name += learned.rank;
+    	name += card.suit + "-";
+    	name += card.rank;
+    	return name;
+    }
+
+    var learned = ui.learned_cards[card.order];
+    if (MHGA_show_faces_in_replay && learned && ui.replay) {
+        var name = "card-";
+        if(learned.suit == undefined) {
+            name += 6;
+        } else {
+            name += learned.suit;
+        }
+        name += "-";
+        if(learned.rank == undefined) {
+            name += 6;
+        } else {
+            name += learned.rank;
+        }
         return name;
     }
 
-	if (card.unknown) return "card-back";
-
-	var name = "card-";
-	name += card.suit + "-";
-	name += card.rank;
-	return name;
+	return "card-back";
 };
 
 var scale_card_image = function(context, name) {
@@ -352,6 +363,17 @@ var HanabiCard = function(config) {
 
 	this.setBareImage();
 
+    this.unknownRect = new Kinetic.Rect({
+        x: 0,
+        y: 0,
+        width: config.width,
+        height: config.height,
+        fill: "#cccccc",
+        opacity: 0.4,
+        visible: MHGA_show_faces_in_replay && this.unknown && ui.learned_cards[this.order] && !ui.learned_cards[this.order].revealed
+    })
+    this.add(this.unknownRect);
+
 	this.indicateRect = new Kinetic.Rect({
 		x: 0,
 		y: 0,
@@ -556,6 +578,21 @@ HanabiCard.prototype.add_listeners = function() {
 };
 
 HanabiCard.prototype.setBareImage = function() {
+    if (this.unknownRect != undefined) {
+        var learned = ui.learned_cards[this.order];
+        //if we're in a replay, we have knowledge about the card, but we don't know the ACTUAL card
+        if(MHGA_show_faces_in_replay &&
+           ui.replay &&
+           this.unknown &&
+           learned != undefined &&
+           Object.keys(learned).length != 0 &&
+           !learned.revealed) {
+            this.unknownRect.setVisible(true);
+        } else {
+            this.unknownRect.setVisible(false);
+        }
+    }
+
 	this.barename = image_name(this);
 };
 
@@ -575,10 +612,13 @@ HanabiCard.prototype.setIndicator = function(indicate, negative) {
 HanabiCard.prototype.add_clue = function(clue) {
 	var i;
 
+    if (!ui.learned_cards[this.order]) {
+        ui.learned_cards[this.order] = {};
+	}
+
 	if (clue.type == CLUE.SUIT)
 	{
 		var grad = this.color_clue.getFillLinearGradientColorStops();
-
 		if (grad.length == 2)
 		{
 			this.color_clue.setFillLinearGradientColorStops([0, suit_colors[clue.value], 1, suit_colors[clue.value]]);
@@ -611,11 +651,19 @@ HanabiCard.prototype.add_clue = function(clue) {
 		}
 
 		this.color_clue_group.show();
+
+		if (ui.learned_cards[this.order].suit == undefined) {
+		    ui.learned_cards[this.order].suit = clue.value;
+		} else if (ui.learned_cards[this.order].suit != clue.value) {
+		    ui.learned_cards[this.order].suit = 5;
+		}
+
 	}
 	else
 	{
 		this.number_clue.setText(clue.value.toString());
 		this.number_clue.show();
+		ui.learned_cards[this.order].rank = clue.value;
 	}
 };
 
@@ -1680,7 +1728,8 @@ var suit_colors = [
 	"#ccaa22",
 	"#aa0000",
 	"#6600cc",
-	"#111111"
+	"#111111",
+	"#cccccc"
 ];
 
 var card_images = {};
@@ -1791,9 +1840,11 @@ this.build_cards = function() {
 		ctx.stroke();
 	};
 
-	for (i = 0; i < 6; i++)
+    // 0-5 are the real suits. 6 is a "white" suit for replays
+	for (i = 0; i < 7; i++)
 	{
-		for (j = 0; j <= 5; j++)
+	    //0 is the stack base. 1-5 are the cards 1-5. 6 is a numberless card for replays.
+		for (j = 0; j < 7; j++)
 		{
 			name = "card-" + i + "-" + j;
 
@@ -1886,10 +1937,14 @@ this.build_cards = function() {
 			var text_y_pos = 110;
 			ctx.font = "bold 96pt Arial";
 			var index_label = j.toString();
+			if(j == 6) {
+			    index_label = "";
+			}
+
 			if(MHGA_colorblind_mode) {
 			    ctx.font = "bold 68pt Arial";
 			    text_y_pos = 83;
-			    index_label = suit_letter + j.toString();
+			    index_label = suit_letter + index_label;
 			}
 
 			ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
@@ -1920,88 +1975,89 @@ this.build_cards = function() {
 			}
 
 			ctx.lineWidth = 5;
-
-			if (j == 1 || j == 3)
-			{
-				ctx.save();
-				ctx.translate(cardw / 2, cardh / 2);
-				ctx.scale(0.4, 0.4);
-				ctx.translate(-75, -100);
-				pathfuncs[i]();
-				drawshape();
-				ctx.restore();
-			}
-
-			if (j > 1)
-			{
-			    var symbol_y_pos = 120;
-			    if(MHGA_colorblind_mode) {
-			        symbol_y_pos = 85;
-			    }
-				ctx.save();
-				ctx.translate(cardw / 2, cardh / 2);
-				ctx.translate(0, -symbol_y_pos);
-				ctx.scale(0.4, 0.4);
-				ctx.translate(-75, -100);
-				pathfuncs[i]();
-				drawshape();
-				ctx.restore();
-
-				ctx.save();
-				ctx.translate(cardw / 2, cardh / 2);
-				ctx.translate(0, symbol_y_pos);
-				ctx.scale(0.4, 0.4);
-				ctx.rotate(Math.PI);
-				ctx.translate(-75, -100);
-				pathfuncs[i]();
-				drawshape();
-				ctx.restore();
-			}
-
-			if (j > 3)
-			{
-				ctx.save();
-				ctx.translate(cardw / 2, cardh / 2);
-				ctx.translate(-90, 0);
-				ctx.scale(0.4, 0.4);
-				ctx.translate(-75, -100);
-				pathfuncs[i]();
-				drawshape();
-				ctx.restore();
-
-				ctx.save();
-				ctx.translate(cardw / 2, cardh / 2);
-				ctx.translate(90, 0);
-				ctx.scale(0.4, 0.4);
-				ctx.rotate(Math.PI);
-				ctx.translate(-75, -100);
-				pathfuncs[i]();
-				drawshape();
-				ctx.restore();
-			}
-
-			if (j == 0)
-			{
-				ctx.clearRect(0, 0, cardw, cardh);
-				if(MHGA_colorblind_mode) {
-                    ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-                    ctx.fillText(suit_letter, 19, 83);
-                    ctx.shadowColor = "rgba(0, 0, 0, 0)";
-                    ctx.strokeText(suit_letter, 19, 83);
+            if (i != 6) {
+                if (j == 1 || j == 3)
+                {
+                    ctx.save();
+                    ctx.translate(cardw / 2, cardh / 2);
+                    ctx.scale(0.4, 0.4);
+                    ctx.translate(-75, -100);
+                    pathfuncs[i]();
+                    drawshape();
+                    ctx.restore();
                 }
 
-			}
+                if (j > 1 && j != 6)
+                {
+                    var symbol_y_pos = 120;
+                    if(MHGA_colorblind_mode) {
+                        symbol_y_pos = 85;
+                    }
+                    ctx.save();
+                    ctx.translate(cardw / 2, cardh / 2);
+                    ctx.translate(0, -symbol_y_pos);
+                    ctx.scale(0.4, 0.4);
+                    ctx.translate(-75, -100);
+                    pathfuncs[i]();
+                    drawshape();
+                    ctx.restore();
 
-			if (j == 0 || j == 5)
-			{
-				ctx.save();
-				ctx.translate(cardw / 2, cardh / 2);
-				ctx.scale(0.6, 0.6);
-				ctx.translate(-75, -100);
-				pathfuncs[i]();
-				drawshape();
-				ctx.restore();
-			}
+                    ctx.save();
+                    ctx.translate(cardw / 2, cardh / 2);
+                    ctx.translate(0, symbol_y_pos);
+                    ctx.scale(0.4, 0.4);
+                    ctx.rotate(Math.PI);
+                    ctx.translate(-75, -100);
+                    pathfuncs[i]();
+                    drawshape();
+                    ctx.restore();
+                }
+
+                if (j > 3 && j != 6)
+                {
+                    ctx.save();
+                    ctx.translate(cardw / 2, cardh / 2);
+                    ctx.translate(-90, 0);
+                    ctx.scale(0.4, 0.4);
+                    ctx.translate(-75, -100);
+                    pathfuncs[i]();
+                    drawshape();
+                    ctx.restore();
+
+                    ctx.save();
+                    ctx.translate(cardw / 2, cardh / 2);
+                    ctx.translate(90, 0);
+                    ctx.scale(0.4, 0.4);
+                    ctx.rotate(Math.PI);
+                    ctx.translate(-75, -100);
+                    pathfuncs[i]();
+                    drawshape();
+                    ctx.restore();
+                }
+
+                if (j == 0)
+                {
+                    ctx.clearRect(0, 0, cardw, cardh);
+                    if(MHGA_colorblind_mode) {
+                        ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+                        ctx.fillText(suit_letter, 19, 83);
+                        ctx.shadowColor = "rgba(0, 0, 0, 0)";
+                        ctx.strokeText(suit_letter, 19, 83);
+                    }
+
+                }
+
+                if (j == 0 || j == 5)
+                {
+                    ctx.save();
+                    ctx.translate(cardw / 2, cardh / 2);
+                    ctx.scale(0.6, 0.6);
+                    ctx.translate(-75, -100);
+                    pathfuncs[i]();
+                    drawshape();
+                    ctx.restore();
+                }
+            }
 		}
 	}
 
@@ -3076,6 +3132,9 @@ this.enter_replay = function(enter) {
 		replay_area.hide();
 
 		if (saved_action) this.handle_action(saved_action);
+		for (var i = 0; i < this.deck.length; ++i) {
+		    this.deck[i].setBareImage();
+		}
 		uilayer.draw();
 	}
 };
@@ -3218,7 +3277,8 @@ var suit_names = [
 	"Yellow",
 	"Red",
 	"Purple",
-	"Black"
+	"Black",
+	" "
 ];
 
 var suit_abbreviations = [
@@ -3227,7 +3287,8 @@ var suit_abbreviations = [
     "Y",
     "R",
     "P",
-    "K"
+    "K",
+    ""
 ]
 
 
@@ -3424,9 +3485,10 @@ this.handle_notify = function(note, performing_replay) {
 		ui.deck[note.which.order].suit = note.which.suit;
 		ui.deck[note.which.order].rank = note.which.rank;
 		ui.deck[note.which.order].unknown = false;
+		ui.learned_cards[note.which.order] = {suit: note.which.suit, rank: note.which.rank, revealed: true};
 		ui.deck[note.which.order].setBareImage();
 		ui.deck[note.which.order].hide_clues();
-		ui.learned_cards[note.which.order] = {suit: note.which.suit, rank: note.which.rank};
+
 
 		pos = child.getAbsolutePosition();
 		child.setRotation(child.parent.getRotation());
@@ -3452,9 +3514,10 @@ this.handle_notify = function(note, performing_replay) {
 		ui.deck[note.which.order].suit = note.which.suit;
 		ui.deck[note.which.order].rank = note.which.rank;
 		ui.deck[note.which.order].unknown = false;
+		ui.learned_cards[note.which.order] = {suit: note.which.suit, rank: note.which.rank, revealed: true};
 		ui.deck[note.which.order].setBareImage();
 		ui.deck[note.which.order].hide_clues();
-		ui.learned_cards[note.which.order] = {suit: note.which.suit, rank: note.which.rank};;
+
 
 		pos = child.getAbsolutePosition();
 		child.setRotation(child.parent.getRotation());
@@ -3494,9 +3557,10 @@ this.handle_notify = function(note, performing_replay) {
 		ui.deck[note.which.order].suit = note.which.suit;
 		ui.deck[note.which.order].rank = note.which.rank;
 		ui.deck[note.which.order].unknown = false;
+		ui.learned_cards[note.which.order] = {suit: note.which.suit, rank: note.which.rank, revealed: true};
 		ui.deck[note.which.order].setBareImage();
 		ui.deck[note.which.order].hide_clues();
-		ui.learned_cards[note.which.order] = {suit: note.which.suit, rank: note.which.rank};;
+
 
 		if (!this.animate_fast) cardlayer.draw();
 	}
@@ -3514,6 +3578,7 @@ this.handle_notify = function(note, performing_replay) {
 			    !ui.spectating)
 			{
 				ui.deck[note.list[i]].add_clue(note.clue);
+				ui.deck[note.list[i]].setBareImage();
 			}
 		}
 
