@@ -370,7 +370,7 @@ var HanabiCard = function(config) {
         height: config.height,
         fill: "#cccccc",
         opacity: 0.4,
-        visible: MHGA_show_faces_in_replay && this.unknown && ui.learned_cards[this.order] && !ui.learned_cards[this.order].revealed
+        visible: MHGA_show_faces_in_replay && ui.replay && this.unknown && ui.learned_cards[this.order] && !ui.learned_cards[this.order].revealed
     })
     this.add(this.unknownRect);
 
