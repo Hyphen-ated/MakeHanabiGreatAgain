@@ -368,6 +368,7 @@ var HanabiCard = function(config) {
         y: 0,
         width: config.width,
         height: config.height,
+        cornerRadius: 20,
         fill: "#cccccc",
         opacity: 0.4,
         visible: MHGA_show_faces_in_replay && ui.replay && this.unknown && ui.learned_cards[this.order] && !ui.learned_cards[this.order].revealed
