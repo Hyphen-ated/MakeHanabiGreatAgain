@@ -2795,7 +2795,7 @@ this.build_ui = function() {
 
 	replay_bar = new Kinetic.Rect({
 		x: 0,
-		y: .04 * win_h,
+		y: .0425 * win_h,
 		width: .5 * win_w,
 		height: .01 * win_h,
 		fill: "black",
@@ -2828,7 +2828,7 @@ this.build_ui = function() {
 
 	replay_shuttle = new Kinetic.Rect({
 		x: 0,
-		y: .03 * win_h,
+		y: .0325 * win_h,
 		width: .03 * win_w,
 		height: .03 * win_h,
 		fill: "#0000cc",
@@ -2861,7 +2861,7 @@ this.build_ui = function() {
 
 	button = new Button({
 		x: .1 * win_w,
-		y: .06 * win_h,
+		y: .07 * win_h,
 		width: .06 * win_w,
 		height: .08 * win_h,
 		image: "rewindfull"
@@ -2875,7 +2875,7 @@ this.build_ui = function() {
 
 	button = new Button({
 		x: .18 * win_w,
-		y: .06 * win_h,
+		y: .07 * win_h,
 		width: .06 * win_w,
 		height: .08 * win_h,
 		image: "rewind"
@@ -2889,7 +2889,7 @@ this.build_ui = function() {
 
 	button = new Button({
 		x: .26 * win_w,
-		y: .06 * win_h,
+		y: .07 * win_h,
 		width: .06 * win_w,
 		height: .08 * win_h,
 		image: "forward"
@@ -2903,7 +2903,7 @@ this.build_ui = function() {
 
 	button = new Button({
 		x: .34 * win_w,
-		y: .06 * win_h,
+		y: .07 * win_h,
 		width: .06 * win_w,
 		height: .08 * win_h,
 		image: "forwardfull"
@@ -2917,9 +2917,9 @@ this.build_ui = function() {
 
 	button = new Button({
 		x: .15 * win_w,
-		y: .15 * win_h,
+		y: .17 * win_h,
 		width: .2 * win_w,
-		height: .08 * win_h,
+		height: .06 * win_h,
 		text: "Exit Replay"
 	});
 
