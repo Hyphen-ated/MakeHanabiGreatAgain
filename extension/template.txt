@@ -11,6 +11,10 @@ var MHGA_show_faces_in_replay = document.getElementById("MHGA_show_faces_in_repl
 
 var extensionId = "pjncmjjlphlcfkkkceidbepggnjnnkjj";
 
+//start of socket.io
+%SOCKET.IO%
+//end of socket.io
+
 //start of lobby.js
 %LOBBY.JS%
 //end of lobby.js
@@ -18,3 +22,4 @@ var extensionId = "pjncmjjlphlcfkkkceidbepggnjnnkjj";
 //start of ui.js
 %UI.JS%
 //end of ui.js
+

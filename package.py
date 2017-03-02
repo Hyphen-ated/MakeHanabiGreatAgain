@@ -7,20 +7,24 @@ shutil.copytree("extension/", "target/")
 
 with open('extension/template.txt', 'r') as template_file:
     template = template_file.read()
-    with open('src/ui.js', 'r') as ui_file:
-        ui = ui_file.read()
-        with open('src/lobby.js') as lobby_file:
-            lobby = lobby_file.read()
-            output = template.replace('%LOBBY.JS%', lobby)\
-                            .replace('%UI.JS%', ui)
-            output_file = open("target/make_hanabi_great_again.user.js", "w")
-            output_file.write(output)
-            output_file.close()
+
+    ui_file = open('src/ui.js', 'r')
+    ui = ui_file.read()
+
+    lobby_file = open('src/lobby.js', 'r')
+    lobby = lobby_file.read()
+
+    socketio_file = open('src/socket.io-1.4.5.min.js', 'r')
+    socketio = socketio_file.read()
+
+    output = template.replace('%LOBBY.JS%', lobby)\
+                    .replace('%UI.JS%', ui)\
+                    .replace('%SOCKET.IO%', socketio)
+    output_file = open("target/make_hanabi_great_again.user.js", "w")
+    output_file.write(output)
+    output_file.close()
 
 
-
-#shutil.copyfile("src/ui.js", "target/ui.js")
-#shutil.copyfile("src/lobby.js", "target/lobby.js")
 shutil.copyfile("src/hanabi.css", "target/hanabi.css")
 
 

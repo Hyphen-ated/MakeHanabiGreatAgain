@@ -21,7 +21,8 @@
                   "storage",
                   "webRequestBlocking",
                   "*://keldon.net/",
-                  "*://www.keldon.net/"],
+                  "*://www.keldon.net/",
+                  "*://cdn.socket.io/"],
   "web_accessible_resources": ["make_hanabi_great_again.user.js"],
   "externally_connectable": {
     "matches": ["*://keldon.net/hanabi/", "*://www.keldon.net/hanabi/"]

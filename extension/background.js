@@ -3,7 +3,10 @@ chrome.webRequest.onBeforeRequest.addListener(
     function(details) {
         return {cancel: true};
     },
-    {urls: ["*://keldon.net/hanabi/ui.js", "*://keldon.net/hanabi/lobby.js", "*://keldon.net/hanabi/hanabi.css"]},
+    {urls: ["*://keldon.net/hanabi/ui.js",
+            "*://keldon.net/hanabi/lobby.js",
+             "*://keldon.net/hanabi/hanabi.css",
+             "*://cdn.socket.io/socket.io-1.4.5.js"]},
     ["blocking"]);
 
 chrome.runtime.onMessageExternal.addListener(
