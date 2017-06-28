@@ -29,6 +29,11 @@ this.ready = false;
 //these are cards we have "learned"
 this.learned_cards = [];
 
+this.timebank_mode = true;
+this.timebank_seconds = 0;
+this.timebank_addition_per_turn = 10;
+this.current_turn_start_time = 0;
+
 function image_name(card) {
     if(!card.unknown) {
         var name = "card-";
@@ -2190,6 +2195,7 @@ var name_frames = [];
 var play_stacks = [], discard_stacks = [];
 var play_area, discard_area, clue_log;
 var clue_area, clue_target_group, clue_type_group, submit_clue;
+var timer_rect, timer_text;
 var no_clue_label, no_clue_box, no_discard_label;
 var replay_area, replay_bar, replay_shuttle, replay_button;
 var lobby_button, help_button;
@@ -2697,9 +2703,9 @@ this.build_ui = function() {
 	uilayer.add(no_clue_label);
 
 	clue_area = new Kinetic.Group({
-		x: .15 * win_w,
+		x: .10 * win_w,
 		y: (MHGA_show_more_log ? .54 : .51) * win_h,
-		width: .5 * win_w,
+		width: .55 * win_w,
 		height: .27 * win_h
 	});
 
@@ -2708,7 +2714,7 @@ this.build_ui = function() {
 
 	var button;
 
-	x = .21 * win_w - (nump - 2) * .044 * win_w;
+	x = .26 * win_w - (nump - 2) * .044 * win_w;
 
 	for (i = 0; i < nump - 1; i++)
 	{
@@ -2733,7 +2739,7 @@ this.build_ui = function() {
 	for (i = 1; i <= 5; i++)
 	{
 		button = new NumberButton({
-			x: (.133 + (i - 1) * .049) * win_w,
+			x: (.183 + (i - 1) * .049) * win_w,
 			y: (MHGA_show_more_log ? .027 : .035) * win_h,
 			width: .04 * win_w,
 			height: .071 * win_h,
@@ -2747,12 +2753,12 @@ this.build_ui = function() {
 	}
 
 	suits = 5;
-	x = .133;
+	x = .183;
 
 	if (this.variant == VARIANT.BLACKSUIT || this.variant == VARIANT.BLACKONE)
 	{
 		suits = 6;
-		x = .108;
+		x = .158;
 	}
 
 	for (i = 0; i < suits; i++)
@@ -2773,7 +2779,7 @@ this.build_ui = function() {
 	}
 
 	submit_clue = new Button({
-		x: .133 * win_w,
+		x: .183 * win_w,
 		y: (MHGA_show_more_log ? .172 : .195) * win_h,
 		width: .236 * win_w,
 		height: .051 * win_h,
@@ -2781,7 +2787,38 @@ this.build_ui = function() {
 	});
 
 	clue_area.add(submit_clue);
-
+    
+    if(ui.timebank_mode) {
+        timer_rect = new Kinetic.Rect({
+            x: .1 * win_w,
+            y: (MHGA_show_more_log ? .172 : .195) * win_h,
+            width: .08 * win_w,
+            height: .051 * win_h,
+            fill: "black",
+            cornerRadius: .005 * win_h,
+            opacity: 0.2
+        });        
+        
+        clue_area.add(timer_rect);
+        
+        timer_text = new Kinetic.Text({
+            x: .1 * win_w,
+            y: (MHGA_show_more_log ? .182 : .205) * win_h,
+            width: .08 * win_w,
+            height: .051 * win_h,
+            fontSize: .03 * win_h,
+            fontFamily: "Verdana",
+            align: "center",
+            text: "10:05",
+            fill: "#d8d5ef",
+            shadowColor: "black",
+            shadowBlur: 10,
+            shadowOffset: { x: 0, y: 0 },
+            shadowOpacity: 0.9
+        });
+        
+        clue_area.add(timer_text);
+    }
 	clue_area.hide();
 
 	uilayer.add(clue_area);
