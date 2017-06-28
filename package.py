@@ -5,7 +5,7 @@ if os.path.exists('target'):
 
 shutil.copytree("extension/", "target/")
 
-with open('extension/template.txt', 'r') as template_file:
+with open('src/template.txt', 'r') as template_file:
     template = template_file.read()
 
     ui_file = open('src/ui.js', 'r')
@@ -28,13 +28,5 @@ with open('extension/template.txt', 'r') as template_file:
 shutil.copyfile("src/hanabi.css", "target/hanabi.css")
 
 
-#if you aren't me, just take this key stuff out.
-key_directory = "D:/home/code/hanabipem/"
-shutil.copyfile(key_directory + "key.pem", "target/key.pem")
-
 #make the zip file to be uploaded to google web store
 shutil.make_archive('release', 'zip', 'target')
-
-#don't accidentally leave key information anywhere inside this repo working dir
-shutil.move('release.zip', key_directory + 'release.zip')
-os.remove('target/key.pem')
