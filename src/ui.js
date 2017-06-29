@@ -2935,7 +2935,10 @@ this.build_ui = function() {
 		}
 	});
 
-	replay_area.add(button);
+	if (MHGA_show_exitreplay_center)
+	{
+		replay_area.add(button);
+	}
 
 	replay_area.hide();
 	uilayer.add(replay_area);
