@@ -23,6 +23,7 @@ var defined_options =
     "MHGA_show_debug_messages": false,
     "MHGA_show_log_numbers": true,
     "MHGA_colorblind_mode": false,
+    "MHGA_show_exitreplay_center" : true,
     "MHGA_show_faces_in_replay": true
 }
 

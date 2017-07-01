@@ -8,6 +8,7 @@ var MHGA_show_debug_messages = document.getElementById("MHGA_show_debug_messages
 var MHGA_show_log_numbers = document.getElementById("MHGA_show_log_numbers").checked;
 var MHGA_colorblind_mode = document.getElementById("MHGA_colorblind_mode").checked;
 var MHGA_show_faces_in_replay = document.getElementById("MHGA_show_faces_in_replay").checked;
+var MHGA_show_exitreplay_center = document.getElementById("MHGA_show_exitreplay_center").checked;
 
 var extensionId = "pjncmjjlphlcfkkkceidbepggnjnnkjj";
 
