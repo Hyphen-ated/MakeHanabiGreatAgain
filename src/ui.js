@@ -2867,9 +2867,11 @@ this.build_ui = function() {
 		image: "rewindfull"
 	});
 
-	button.on("click tap", function() {
+	var rewindfull_function = function() {
 		ui.perform_replay(0);
-	});
+	}
+
+	button.on("click tap", rewindfull_function);
 
 	replay_area.add(button);
 
@@ -2881,9 +2883,11 @@ this.build_ui = function() {
 		image: "rewind"
 	});
 
-	button.on("click tap", function() {
+	var backward_function = function() {
 		ui.perform_replay(self.replay_turn - 1, true);
-	});
+	};
+
+	button.on("click tap", backward_function);
 
 	replay_area.add(button);
 
@@ -2895,9 +2899,12 @@ this.build_ui = function() {
 		image: "forward"
 	});
 
-	button.on("click tap", function() {
+
+	var forward_function = function() {
 		ui.perform_replay(self.replay_turn + 1);
-	});
+	};
+
+	button.on("click tap", forward_function);
 
 	replay_area.add(button);
 
@@ -2909,9 +2916,11 @@ this.build_ui = function() {
 		image: "forwardfull"
 	});
 
-	button.on("click tap", function() {
+	var forwardfull_function = function() {
 		ui.perform_replay(self.replay_max, true);
-	});
+	};
+
+	button.on("click tap", forwardfull_function);
 
 	replay_area.add(button);
 
@@ -2935,10 +2944,48 @@ this.build_ui = function() {
 		}
 	});
 
+	var backward_round = function ()
+	{
+		ui.perform_replay(self.replay_turn - nump, true);
+	}
+
+	var forward_round = function ()
+	{
+		ui.perform_replay(self.replay_turn + nump);
+	}
+
 	replay_area.add(button);
 
 	replay_area.hide();
 	uilayer.add(replay_area);
+
+	this.keyNavigation = function (e) {
+		if (!replay_area.attrs.visible)
+		{
+			return;
+		}
+
+		var navigationStep =
+		{
+			"End" : forwardfull_function,
+			"Home" : rewindfull_function,
+
+			"ArrowLeft" : backward_function,
+			"ArrowRight" : forward_function,
+
+			"[" :  backward_round,
+			"]" : forward_round,
+		}
+
+		var currentNavigation = navigationStep[e.key];
+		if (currentNavigation != undefined)
+		{
+			e.preventDefault();
+			currentNavigation();
+		}
+	}
+
+	$(document).keydown(this.keyNavigation);
 
 	helpgroup = new Kinetic.Group({
 		x: .1 * win_w,
@@ -3907,6 +3954,7 @@ this.set_message = function(msg) {
 
 this.destroy = function() {
 	stage.destroy();
+	$(document).unbind('keydown', this.keyNavigation);
 };
 
 this.replay_log = [];
