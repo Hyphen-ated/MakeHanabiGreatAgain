@@ -560,7 +560,7 @@ HanabiCard.prototype.reset = function() {
 HanabiCard.prototype.add_listeners = function() {
 	var self = this;
 
-	this.on("mouseover tap", function() {
+	this.on("mousemove tap", function() {
 		clue_log.showMatches(self);
 		uilayer.draw();
 	});
@@ -1429,7 +1429,7 @@ var HanabiClueEntry = function(config) {
 	this.list = config.list;
 	this.neglist = config.neglist;
 
-	background.on("mouseover tap", function() {
+	background.on("mousemove tap", function() {
 		var i;
 
 		clue_log.showMatches(null);
