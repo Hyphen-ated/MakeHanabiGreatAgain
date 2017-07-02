@@ -28,6 +28,7 @@ this.ready = false;
 //in replays, we can show a grayed-out version of a card face if it was not known at the time, but we know it now.
 //these are cards we have "learned"
 this.learned_cards = [];
+this.activeHover = null;
 
 function image_name(card) {
     if(!card.unknown) {
@@ -530,6 +531,7 @@ var HanabiCard = function(config) {
             self.tooltip.show();
             tiplayer.draw();
         }
+        ui.activeHover = this;
     })
 
     this.on("mouseout", function() {
@@ -1452,6 +1454,7 @@ var HanabiClueEntry = function(config) {
 		}
 
 		cardlayer.batchDraw();
+		ui.activeHover = this;
 	});
 
 	background.on("mouseout", function() {
@@ -3406,6 +3409,13 @@ this.handle_notify = function(note, performing_replay) {
 	if(MHGA_show_debug_messages) {
         console.log(note);
     }
+
+	if (ui.activeHover)
+	{
+		ui.activeHover.dispatchEvent(new MouseEvent("mouseout"));
+		ui.activeHover = null;
+	}
+
 	if (type == "draw")
 	{
 		ui.deck[note.order] = new HanabiCard({
