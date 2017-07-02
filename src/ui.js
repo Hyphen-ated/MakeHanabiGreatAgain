@@ -582,6 +582,9 @@ HanabiCard.prototype.add_listeners = function() {
 	            self.note_given.show();
 	        } else {
 	            self.note_given.hide();
+	            self.tooltip.hide();
+	            tiplayer.draw();
+	            uilayer.draw();
 	        }
 	        cardlayer.draw();
 	    }
