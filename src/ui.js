@@ -29,10 +29,63 @@ this.ready = false;
 //these are cards we have "learned"
 this.learned_cards = [];
 
-this.timebank_mode = true;
-this.timebank_seconds = 0;
-this.timebank_addition_per_turn = 10;
-this.current_turn_start_time = 0;
+
+this.timebank_mode = false;
+this.timebank_seconds = 600;
+this.timebank_overtime = 10;
+this.last_timer_update_time_ms = new Date().getTime();
+
+function parse_time(timeStr) {
+    var num = parseInt(timeStr);
+    if(!num) {
+        return null;
+    }
+    if(timeStr.endsWith("m")) {
+        num *= 60;
+    }
+    return num;
+}
+
+function pad2(num) {
+    if (num < 10) return "0" + num
+    return "" + num;
+}
+
+function seconds_to_time_display(seconds) {
+    return Math.floor(seconds/60) + ":" + pad2(seconds % 60);
+}
+
+function checkTimer(textObject) {
+    var time = new Date().getTime();
+    var time_elapsed = time - ui.last_timer_update_time_ms;
+    ui.last_timer_update_time_ms = time;
+    ui.timebank_seconds -= time_elapsed/1000;
+    
+    if(ui.timebank_seconds <= 0) {
+        console.log("it's over isn't it");
+    }
+    textObject.setText(seconds_to_time_display(Math.ceil(ui.timebank_seconds)));
+    uilayer.draw();
+}
+
+if (lobby.game.name.indexOf("!timed") !== -1) {
+    this.timebank_mode = true;
+    var match_arr = lobby.game.name.match(/!bank (\d+[a-z])/);
+    if(match_arr) {
+        var val = match_arr[1];   
+        var seconds = parse_time(val);
+        if(seconds)
+            this.timebank_seconds = seconds;  
+    }
+    match_arr = lobby.game.name.match(/!over (\d+[a-z])/);
+    if(match_arr) {
+        var val = match_arr[1]; 
+        var seconds = parse_time(val);
+        if(seconds)
+            this.timebank_overtime = seconds;  
+    }
+    
+}
 
 function image_name(card) {
     if(!card.unknown) {
@@ -1680,6 +1733,12 @@ Loader.prototype.get = function(name) {
 var ImageLoader = new Loader(function() {
 
     notes_written = ui.load_notes();
+    if ("timebank" in notes_written) {
+        ui.timebank_seconds = parseInt(notes_written["timebank"]);
+        if(isNaN(ui.timebank_seconds)) {
+            ui.timebank_seconds = ui.timebank_minimum;
+        }
+    }
 	ui.build_cards();
 	ui.build_ui();
 	ui.send_msg({type: "ready", resp: {}});
@@ -2809,7 +2868,7 @@ this.build_ui = function() {
             fontSize: .03 * win_h,
             fontFamily: "Verdana",
             align: "center",
-            text: "10:05",
+            text: "00:00",
             fill: "#d8d5ef",
             shadowColor: "black",
             shadowBlur: 10,
@@ -2818,6 +2877,8 @@ this.build_ui = function() {
         });
         
         clue_area.add(timer_text);
+        
+        window.setInterval(function(){checkTimer(timer_text)}, 1000);
     }
 	clue_area.hide();
 
