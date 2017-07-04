@@ -28,6 +28,7 @@ this.ready = false;
 //in replays, we can show a grayed-out version of a card face if it was not known at the time, but we know it now.
 //these are cards we have "learned"
 this.learned_cards = [];
+this.activeHover = null;
 
 
 this.timebank_mode = false;
@@ -588,6 +589,7 @@ var HanabiCard = function(config) {
             self.tooltip.show();
             tiplayer.draw();
         }
+        ui.activeHover = this;
     })
 
     this.on("mouseout", function() {
@@ -616,7 +618,7 @@ HanabiCard.prototype.reset = function() {
 HanabiCard.prototype.add_listeners = function() {
 	var self = this;
 
-	this.on("mouseover tap", function() {
+	this.on("mousemove tap", function() {
 		clue_log.showMatches(self);
 		uilayer.draw();
 	});
@@ -640,6 +642,9 @@ HanabiCard.prototype.add_listeners = function() {
 	            self.note_given.show();
 	        } else {
 	            self.note_given.hide();
+	            self.tooltip.hide();
+	            tiplayer.draw();
+	            uilayer.draw();
 	        }
 	        cardlayer.draw();
 	    }
@@ -1482,7 +1487,7 @@ var HanabiClueEntry = function(config) {
 	this.list = config.list;
 	this.neglist = config.neglist;
 
-	background.on("mouseover tap", function() {
+	background.on("mousemove tap", function() {
 		var i;
 
 		clue_log.showMatches(null);
@@ -1507,6 +1512,7 @@ var HanabiClueEntry = function(config) {
 		}
 
 		cardlayer.batchDraw();
+		ui.activeHover = this;
 	});
 
 	background.on("mouseout", function() {
@@ -3501,6 +3507,13 @@ this.handle_notify = function(note, performing_replay) {
 	if(MHGA_show_debug_messages) {
         console.log(note);
     }
+
+	if (ui.activeHover)
+	{
+		ui.activeHover.dispatchEvent(new MouseEvent("mouseout"));
+		ui.activeHover = null;
+	}
+
 	if (type == "draw")
 	{
 		ui.deck[note.order] = new HanabiCard({
