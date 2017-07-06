@@ -3803,6 +3803,9 @@ this.handle_notify = function(note, performing_replay) {
 
 	else if (type == "game_over")
 	{
+		if (!this.replay_only && !ui.spectating && MHGA_beep_notifications) {
+			chrome.runtime.sendMessage(extensionId, {action: "make-beep"});
+		}
 		this.replay_only = true;
 		replay_button.hide();
 		if (!this.replay) this.enter_replay(true);
